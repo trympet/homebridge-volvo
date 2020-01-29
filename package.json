@@ -1,0 +1,45 @@
+{
+  "name": "homebridge-volvo",
+  "version": "1.0.0",
+  "description": "Volvo plugin for Homebridge",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/trympet/homebridge-volvo.git"
+  },
+  "keywords": [
+    "homebridge",
+    "volvo",
+    "volvo-on-call",
+    "homebridge-plugin"
+  ],
+  "author": "Trym Lund Flogard",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/trympet/homebridge-volvo/issues"
+  },
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "config.schema.json"
+  ],
+  "dependencies": {
+    "@babel/core": "^7.8.3",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/polyfill": "^7.8.3",
+    "@babel/preset-env": "^7.8.3",
+    "@babel/preset-typescript": "^7.8.3",
+    "rollup": "^1.30.1",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-node-resolve": "^5.2.0"
+  },
+  "scripts": {
+    "dev": "rollup -c -w",
+    "build": "rollup -c",
+    "prepublishOnly": "npm run build"
+  },
+  "homepage": "https://github.com/trympet/homebridge-volvo#readme"
+}
