@@ -10,10 +10,11 @@
     "sourceType": "module"
   },
   "ignorePatterns": [
-    "dist"
+    "dist",
+    "types.ts"
   ],
   "rules": {
-    "quotes": ["warn", "single"],
+    "quotes": ["warn", "double"],
     "indent": ["warn", 2, { "SwitchCase": 1 }],
     "linebreak-style": ["warn", "unix"],
     "semi": ["warn", "always"],
@@ -24,7 +25,7 @@
     "brace-style": ["warn"],
     "prefer-arrow-callback": ["warn"],
     "max-len": ["warn", 140],
-    "no-console": ["warn"], // use the provided Homebridge log method instead
+    // "no-console": ["warn"], // use the provided Homebridge log method instead
     "no-non-null-assertion": ["off"],
     "comma-spacing": ["error"],
     "no-multi-spaces": ["warn", { "ignoreEOLComments": true }],
