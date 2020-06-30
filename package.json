@@ -1,7 +1,9 @@
 {
+  "private": true,
+  "displayName": "Homebridge Volvo",
   "name": "homebridge-volvo",
   "version": "1.0.0",
-  "description": "Volvo plugin for Homebridge",
+  "description": "Manage your Volvo car with Homebridge.",
   "repository": {
     "type": "git",
     "url": "git://github.com/trympet/homebridge-volvo.git"
@@ -18,8 +20,8 @@
     "url": "https://github.com/trympet/homebridge-volvo/issues"
   },
   "engines": {
-    "node": ">=0.12.0",
-    "homebridge": ">=0.2.0"
+    "node": ">=10.17.0",
+    "homebridge": ">0.4.53"
   },
   "main": "dist/index.js",
   "files": [
@@ -27,19 +29,22 @@
     "config.schema.json"
   ],
   "dependencies": {
-    "@babel/core": "^7.8.3",
-    "@babel/plugin-proposal-class-properties": "^7.8.3",
-    "@babel/polyfill": "^7.8.3",
-    "@babel/preset-env": "^7.8.3",
-    "@babel/preset-typescript": "^7.8.3",
-    "rollup": "^1.30.1",
-    "rollup-plugin-babel": "^4.3.3",
-    "rollup-plugin-node-resolve": "^5.2.0"
+    "btoa": "^1.2.1",
+    "node-fetch": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/btoa": "^1.2.3",
+    "@types/node-fetch": "^2.5.4",
+    "typescript": "^3.7.5",
+    "eslint": "^7.3.1",
+    "homebridge": "^1.1.1",
+    "ts-node": "^8.10.2"
   },
   "scripts": {
-    "dev": "rollup -c -w",
-    "build": "rollup -c",
-    "prepublishOnly": "npm run build"
+    "lint": "eslint src/**.ts",
+    "watch": "npm run build && npm link && nodemon",
+    "build": "tsc",
+    "prepublishOnly": "npm run lint && npm run build"
   },
   "homepage": "https://github.com/trympet/homebridge-volvo#readme"
 }
