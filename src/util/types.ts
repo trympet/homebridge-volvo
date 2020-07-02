@@ -1,8 +1,9 @@
-// types are based on responses for Volvo 2020 XC60 T8 
+// types are based on responses for Volvo 2020 XC60 T8
 export interface Config {
-  region: string
-  email: string
-  password: string
+  region: string;
+  email: string;
+  password: string;
+  VIN?: string;
 }
 
 /* RESPONSE FROM https://vocapi.wirelesscar.net/customerapi/rest/v3.0/customeraccounts */
@@ -17,7 +18,7 @@ export interface User {
 
 /* RESPONSE FROM https://vocapi.wirelesscar.net/customerapi/rest/v3.0/vehicles/VEHICLE_VIN/CALL_METHOD */
 export interface CallState {
-  status: string;
+  status?: "MessageDelivered" | "Successful" | "Started" | "Queued" | "Failed";
   statusTimestamp: Date;
   startTime: Date;
   serviceType: string;
@@ -27,13 +28,35 @@ export interface CallState {
   customerServiceId: string;
 }
 
+/* RESPONSE FROM https://vocapi.wirelesscar.net/customerapi/rest/v3.0/vehicles/VEHICLE_VIN/position */
+export interface PositionResponse {
+  position: Position;
+  calculatedPosition: CalculatedPosition;
+}
+
+export interface Position {
+  longitude: number;
+  latitude: number;
+  timestamp: Date;
+  speed?: any;
+  heading?: any;
+}
+
+export interface CalculatedPosition {
+  longitude?: any;
+  latitude?: any;
+  timestamp?: any;
+  speed?: any;
+  heading?: any;
+}
+
 export interface VehicleAttributes {
   engineCode: string;
   exteriorCode: string;
   interiorCode: string;
-  tyreDimensionCode: string;
-  tyreInflationPressureLightCode?: any;
-  tyreInflationPressureHeavyCode?: any;
+  DimensionCode: string;
+  InflationPressureLightCode?: any;
+  InflationPressureHeavyCode?: any;
   gearboxCode: string;
   fuelType: string;
   fuelTankVolume: number;
@@ -80,7 +103,7 @@ export interface VehicleAttributes {
 
 /* RESPONSE FROM https://vocapi.wirelesscar.net/customerapi/rest/v3.0/vehicles/VEHICLE_VIN/status */
 export interface ERS {
-  status: string;
+  status: "off" | "on";
   timestamp: Date;
   engineStartWarning: string;
   engineStartWarningTimestamp: Date;
@@ -107,7 +130,7 @@ export interface Timer {
 }
 export interface Heater {
   seatSelection: SeatSelection;
-  status: string;
+  status: "off" | "on";
   timer1: Timer;
   timer2: Timer;
   timestamp: Date;
@@ -133,11 +156,11 @@ export interface TheftAlarm {
   latitude: number;
   timestamp: Date;
 }
-export interface TyrePressure {
-  frontLeftTyrePressure: string;
-  frontRightTyrePressure: string;
-  rearLeftTyrePressure: string;
-  rearRightTyrePressure: string;
+export interface Pressure {
+  frontLeftPressure: string;
+  frontRightPressure: string;
+  rearLeftPressure: string;
+  rearRightPressure: string;
   timestamp: Date;
 }
 export interface Windows {
@@ -187,8 +210,78 @@ export interface VehicleState {
   tripMeter1Timestamp: Date;
   tripMeter2: number;
   tripMeter2Timestamp: Date;
-  tyrePressure: TyrePressure;
+  Pressure: Pressure;
   washerFluidLevel: string;
   washerFluidLevelTimestamp: Date;
   windows: Windows;
+  honkBlinkActive: boolean | undefined; // Set in vehicle constructor
+  blinkActive: boolean | undefined; // set in vehicle constructor
 }
+
+export interface HonkBlinkBody extends Record<string, unknown> {
+  clientLatitude: number;
+  clientLongitude: number;
+  clientAccuracy: 0;
+}
+
+export enum VolvoFeatureBindings {
+  LOCATOR = "carLocatorSupported",
+  HONK_AND_OR_BLINK = "honkAndOrBlink",
+  HONK_AND_BLINK = "honkAndBlink",
+  REMOTE_HEATER = "remoteHeaterSupported",
+  UNLOCK = "unlockSupported",
+  LOCK = "lockSupported",
+  PRECLIMATIZATION = "preclimatizationSupported",
+  ENGINE_REMOTE_START = "engineStartSupported",
+  BATTERY = "highVoltageBatterySupported",
+}
+
+export enum VolvoSensorBindings {
+  // List of groups
+  GROUP_ENGINE_REMOTE_START = "ERS",
+  GROUP_HEATER = "heater",
+  GROUP_BATTERY = "hvBattery",
+  GROUP_TYRE = "tyrePressure",
+  // GROUP_DOORS = "doors",
+  // GROUP_WINDOWS = "windows",
+
+  // sensor keys
+  LOCK = "carLocked", // only allows locked -> unlocked
+  ENGINE_REMOTE_START_STATUS = "status",
+  ENGINE_STATUS = "engineRunning",
+  FUEL_PERCENT = "fuelAmountLevel",
+  FUEL_PERCENT_LOW = "fuelAmountLevelLow",
+  HEATER_STATUS = "status",
+  BATTERY_PERCENT = "hvBatteryLevel",
+  BATTERY_CHARGE_STATUS = "hvBatteryChargeStatus",
+  BATTERY_PERCENT_LOW = "hvBatteryLevelLow",
+  TYRE_REAR_RIGHT = "rearRightTyrePressure",
+  TYRE_REAR_LEFT = "rearLeftTyrePressure",
+  TYRE_FRONT_RIGHT = "frontRightTyrePressure",
+  TYRE_FRONT_LEFT = "frontLeftTyrePressure",
+  HONK_AND_BLINK = "honkBlinkActive",
+  BLINK = "blinkActive",
+}
+/**
+ * Binding between calls to the VOC api and user actions
+ */
+export enum VolvoActions {
+  ONLY_LOCK, // only allows locked -> unlocked
+  ONLY_UNLOCK, // only allows unlocked -> locked
+  LOCK_UNLOCK, // allows locked <-> unlockedv
+  HEATER,
+  PRECLIMATIZATION,
+  HONK_AND_BLINK,
+  BLINK,
+  ENGINE_REMOTE_START,
+}
+
+// DONE:
+// Battery sensor
+// engine running sensor
+// Lock
+// honk and blink
+// blink
+// heater
+// ERS
+// fuel level
