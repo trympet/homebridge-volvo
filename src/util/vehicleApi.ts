@@ -1,41 +1,72 @@
-import { REST } from "./helpers";
-import { Config, CallState, VehicleState } from "./types";
+import { REST } from "./rest";
+import { Config, CallState, VehicleState, PositionResponse } from "./types";
+import { wait } from "../helpers";
 
 export class VehicleApi extends REST {
-  private vehicleUrl: string
+  private vehicleUrl: string;
   constructor(config: Config, url: string) {
     super(config);
     this.vehicleUrl = url;
   }
 
-  private VALID_STATUS = ["Queued", "Started"]
-  private VALID_STATUS_COMPLETION = ["MessageDelivered", "Successful", "Started"]
+  private VALID_STATUS = ["Queued", "Started"];
 
   /**
    * Make a remote method call
    */
   public async Call(method: string, data?: Record<string, unknown>) {
-    const callResponse: CallState = await this.Post(method, this.vehicleUrl, data);
-
-    if (!("service" in callResponse) || !("status" in callResponse) || !this.VALID_STATUS.includes(callResponse["status"])) {
-      console.warn(`Failed to execute ${method}: ${callResponse["status"]}`);
+    const initialCall: CallState = await this.Post(method, this.vehicleUrl, data);
+    if (
+      (!initialCall["service"] || !initialCall["status"] || !this.VALID_STATUS.includes(initialCall["status"] || ""))
+    ) {
+      console.warn(`Failed to execute ${method}: ${initialCall["errorDescription"]}`);
+      return false;
     }
+    return await this.CheckCallState(initialCall);
+  }
 
-    const serviceUrl = callResponse["service"];
-    const callState: CallState = await this.Get("", serviceUrl);
-    if (!("status" in callState) || !this.VALID_STATUS_COMPLETION.includes(callState["status"])) {
+  private async CheckCallState(callState: CallState): Promise<boolean> {
+    console.log(callState.status);
+    if (!("status" in callState)) {
       console.warn("Message not delivered");
       return false;
-    } else if (callState.status === "Successful") {
-      return true;
     }
-    return false;
+    switch (callState.status) {
+      case "Successful":
+        return true;
+        break;
+
+      case "MessageDelivered":
+        return true;
+        break;
+
+      case "Queued":
+        await wait(10);
+        break;
+      case "Started":
+        return true;
+        break;
+      default:
+        return false;
+        break;
+    }
+    return await this.GetCallState(callState.service);
+  }
+
+  private async GetCallState(serviceUrl: string) {
+    const response: CallState = await this.Get("", serviceUrl);
+    console.log(response);
+    return await this.CheckCallState(response);
+  }
+
+  public async GetVehiclePosition(): Promise<PositionResponse> {
+    return await this.Get("position");
   }
 
   /**
    * Updates the state of the vehicle
    */
-  public async Update(): Promise<VehicleState> {
+  public async GetUpdate(): Promise<VehicleState> {
     return await this.Get("status", this.vehicleUrl);
   }
 }
