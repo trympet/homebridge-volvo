@@ -14,6 +14,7 @@ export class Vehicle extends VehicleApi {
   private state: VehicleState;
   public readonly features: Record<string, boolean> = {};
   private lockTargetState: CharacteristicValue;
+  private bootUnlock = false;
 
   constructor(
     config: Config,
@@ -21,7 +22,7 @@ export class Vehicle extends VehicleApi {
     private readonly Characteristic: typeof ICharacteristic,
     private readonly log: Logger,
     public readonly attr: VehicleAttributes,
-    state: VehicleState
+    state: VehicleState,
   ) {
     super(config, url);
 
@@ -96,10 +97,10 @@ export class Vehicle extends VehicleApi {
             : this.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
         break;
 
-      case (VolvoSensorBindings.TYRE_FRONT_LEFT ||
+      case VolvoSensorBindings.TYRE_FRONT_LEFT ||
         VolvoSensorBindings.TYRE_FRONT_RIGHT ||
         VolvoSensorBindings.TYRE_REAR_LEFT ||
-        VolvoSensorBindings.TYRE_REAR_RIGHT):
+        VolvoSensorBindings.TYRE_REAR_RIGHT:
         value =
           this.state[VolvoSensorBindings.GROUP_TYRE][sensor] === "Normal"
             ? this.Characteristic.AirQuality.GOOD
@@ -175,9 +176,23 @@ export class Vehicle extends VehicleApi {
         if (value === this.Characteristic.LockTargetState.SECURED) {
           success = await this.Lock();
         } else {
+          this.bootUnlock = true;
           success = await this.Unlock();
+          setTimeout(() => {
+            if (success && !this.state.carLocked && this.bootUnlock) {
+              // Vehicle hasn't been unlocked by pressing boot
+              service.updateCharacteristic(
+                this.Characteristic.LockCurrentState,
+                this.Characteristic.LockCurrentState.SECURED,
+              );
+              // Boot unlock has passed. Car is locking automatically
+              this.bootUnlock = false;
+              this.state.carLocked = true;
+            }
+          }, this.attr.unlockTimeFrame);
         }
         if (success) {
+          // Update status to unlocked now, and revert it back to locked if vehicle is still unlocked after timeframe
           service.updateCharacteristic(this.Characteristic.LockCurrentState, value);
         }
         break;
@@ -245,7 +260,7 @@ export class Vehicle extends VehicleApi {
         break;
     }
 
-    const x = setTimeout(() => this.Update(), 20 * 1000); // Update 20 seconds after value change
+    setTimeout(() => this.Update(), 20 * 1000); // Update 20 seconds after value change
   }
 
   /**
@@ -253,7 +268,21 @@ export class Vehicle extends VehicleApi {
    */
   private async Update(): Promise<void> {
     this.log.debug("Updating...");
-    this.state = await this.GetUpdate();
+    const newState = this.GetUpdate();
+    if (this.bootUnlock) {
+      if (!(await newState).carLocked) {
+        // Car has been fully unlocked
+        this.bootUnlock = false;
+      } else {
+        // Car is still partially locked, but indicate to the user that the vehicle is in fact unlocked.
+        // Manually set car unlocked, since boot is open. This isn't shown by the API,
+        // only by querying for services by /services?active=true. No point in implementing this, since
+        // this is stateful.
+        (await newState).carLocked = false;
+      }
+    } else {
+      await newState;
+    }
   }
 
   private async Lock() {
