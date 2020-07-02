@@ -20,6 +20,7 @@ Example config.json:
 ```
 Valid regions are "NA" for North-America, "CN" for China and "" (empty string) for anywhere else.   
 VIN is only required if you have multiple Volvo cars, connected to the same Volvo On Call account.
+## DEV Updates
 ### Update 2020-07-02
 Homebridge is now working, allthough I have not tested much of the functionality yet. This is still very much in early development.   
 
