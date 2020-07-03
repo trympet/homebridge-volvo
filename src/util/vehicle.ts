@@ -70,7 +70,6 @@ export class Vehicle extends VehicleApi {
         break;
 
       case VolvoSensorBindings.BATTERY_CHARGE_STATUS:
-        debugger;
         value =
           this.state[VolvoSensorBindings.GROUP_BATTERY][sensor] === "Started"
             ? this.Characteristic.ChargingState.CHARGING
@@ -78,12 +77,10 @@ export class Vehicle extends VehicleApi {
         break;
 
       case VolvoSensorBindings.BATTERY_PERCENT:
-        debugger;
         value = this.state[VolvoSensorBindings.GROUP_BATTERY][sensor];
         break;
 
       case VolvoSensorBindings.BATTERY_PERCENT_LOW:
-        debugger;
         value =
           this.state[VolvoSensorBindings.GROUP_BATTERY].hvBatteryLevel < 20
             ? this.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW
@@ -268,6 +265,7 @@ export class Vehicle extends VehicleApi {
    */
   private async Update(): Promise<void> {
     this.log.debug("Updating...");
+    await this.RequestUpdate();
     const newState = this.GetUpdate();
     if (this.bootUnlock) {
       if (!(await newState).carLocked) {
