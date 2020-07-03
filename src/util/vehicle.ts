@@ -17,7 +17,7 @@ export class Vehicle extends VehicleApi {
   private bootUnlock = false;
 
   constructor(
-    config: Config,
+    private config: Config,
     public url: string,
     private readonly Characteristic: typeof ICharacteristic,
     private readonly log: Logger,
@@ -49,6 +49,15 @@ export class Vehicle extends VehicleApi {
     this.features[VolvoFeatureBindings.ENGINE_REMOTE_START] = this.attr.engineStartSupported;
     this.features[VolvoFeatureBindings.BATTERY] = this.attr.highVoltageBatterySupported;
 
+    if (this.config.enabledFeatures) {
+      for (const feature in this.config.enabledFeatures) {
+        if (Object.prototype.hasOwnProperty.call(this.config, feature) && !this.config.enabledFeatures[feature]) {
+          // User has disabled the feature, so we disable it as well.
+          this.features[feature] = false;
+        }
+      }
+    }
+
     // update every 30 seconds
     setTimeout(() => this.Update(), 30 * 1000);
   }
@@ -71,18 +80,18 @@ export class Vehicle extends VehicleApi {
 
       case VolvoSensorBindings.BATTERY_CHARGE_STATUS:
         value =
-          this.state[VolvoSensorBindings.GROUP_BATTERY][sensor] === "Started"
+          this.state[VolvoSensorBindings.GROUP_BATTERY]![sensor] === "Started"
             ? this.Characteristic.ChargingState.CHARGING
             : this.Characteristic.ChargingState.NOT_CHARGING;
         break;
 
       case VolvoSensorBindings.BATTERY_PERCENT:
-        value = this.state[VolvoSensorBindings.GROUP_BATTERY][sensor];
+        value = this.state[VolvoSensorBindings.GROUP_BATTERY]![sensor];
         break;
 
       case VolvoSensorBindings.BATTERY_PERCENT_LOW:
         value =
-          this.state[VolvoSensorBindings.GROUP_BATTERY].hvBatteryLevel < 20
+          this.state[VolvoSensorBindings.GROUP_BATTERY]!.hvBatteryLevel < 20
             ? this.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW
             : this.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
         break;

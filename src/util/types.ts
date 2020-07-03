@@ -4,7 +4,24 @@ export interface Config {
   email: string;
   password: string;
   VIN?: string;
+  enabledFeatures?: EnabledFeatures;  
 }
+
+export interface EnabledFeatures {
+  "carLocatorSupported": boolean,
+  "honkAndOrBlink": boolean,
+  "honkAndBlink": boolean,
+  "remoteHeaterSupported": boolean,
+  "unlockSupported": boolean,
+  "lockSupported": boolean,
+  "preclimatizationSupported": boolean,
+  "engineStartSupported": boolean,
+  "highVoltageBatterySupported": boolean,
+}
+
+export type FluidLevelStatus = "Normal" | "Low" | "VeryLow"; 
+export type TyrePressureStatus = "Normal" | "LowSoft";
+
 
 /* RESPONSE FROM https://vocapi.wirelesscar.net/customerapi/rest/v3.0/customeraccounts */
 export interface User {
@@ -156,11 +173,11 @@ export interface TheftAlarm {
   latitude: number;
   timestamp: Date;
 }
-export interface Pressure {
-  frontLeftPressure: string;
-  frontRightPressure: string;
-  rearLeftPressure: string;
-  rearRightPressure: string;
+export interface TyrePressure {
+  frontLeftTyrePressure: TyrePressureStatus;
+  frontRightTyrePressure: TyrePressureStatus;
+  rearLeftTyrePressure: TyrePressureStatus;
+  rearRightTyrePressure: TyrePressureStatus;
   timestamp: Date;
 }
 export interface Windows {
@@ -176,7 +193,7 @@ export interface VehicleState {
   averageFuelConsumptionTimestamp: Date;
   averageSpeed: number;
   averageSpeedTimestamp: Date;
-  brakeFluid: string;
+  brakeFluid: FluidLevelStatus;
   brakeFluidTimestamp: Date;
   bulbFailures: any[];
   bulbFailuresTimestamp: Date;
@@ -194,7 +211,7 @@ export interface VehicleState {
   fuelAmountLevelTimestamp: Date;
   fuelAmountTimestamp: Date;
   heater: Heater;
-  hvBattery: HvBattery;
+  hvBattery: HvBattery | null;
   odometer: number;
   odometerTimestamp: Date;
   privacyPolicyEnabled: boolean;
@@ -210,8 +227,8 @@ export interface VehicleState {
   tripMeter1Timestamp: Date;
   tripMeter2: number;
   tripMeter2Timestamp: Date;
-  Pressure: Pressure;
-  washerFluidLevel: string;
+  tyrePressure: TyrePressureStatus;
+  washerFluidLevel: FluidLevelStatus;
   washerFluidLevelTimestamp: Date;
   windows: Windows;
   honkBlinkActive: boolean | undefined; // Set in vehicle constructor
