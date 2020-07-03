@@ -34,7 +34,7 @@ class VolvoPlatform extends REST {
 
     log.info(
       `Got vehicle ${this.vehicle.attr.modelYear} ${this.vehicle.attr.vehicleType} with` +
-        `registration number ${this.vehicle.attr.registrationNumber}.`
+        ` registration number ${this.vehicle.attr.registrationNumber}.`,
     );
   }
 
@@ -128,7 +128,7 @@ class VolvoPlatform extends REST {
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.ENGINE_REMOTE_START_STATUS)))
         .on(
           "set",
-          cbfy(this.vehicle.SetSensorValue.bind(this.vehicle, VolvoActions.ENGINE_REMOTE_START, engineService))
+          cbfy(this.vehicle.SetSensorValue.bind(this.vehicle, VolvoActions.ENGINE_REMOTE_START, engineService)),
         );
       services.push(engineService);
     }
@@ -161,7 +161,6 @@ class VolvoPlatform extends REST {
     // Sensor services
 
     if (this.vehicle.features[VolvoFeatureBindings.BATTERY]) {
-      debugger;
       const batterySensorService = new Service.BatteryService("Volvo Battery", "battery");
       batterySensorService
         .getCharacteristic(Characteristic.BatteryLevel)
