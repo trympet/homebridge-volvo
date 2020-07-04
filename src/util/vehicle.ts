@@ -9,6 +9,7 @@ import {
 } from "./types";
 import { VehicleApi } from "./vehicleApi";
 import { Characteristic as ICharacteristic, CharacteristicValue, Logger, Service } from "homebridge";
+import { wait } from "../helpers";
 
 export class Vehicle extends VehicleApi {
   private state: VehicleState;
@@ -57,19 +58,23 @@ export class Vehicle extends VehicleApi {
         }
       }
     }
-
-    // update every 30 seconds
-    setTimeout(() => this.Update(), 30 * 1000);
+    // Update periodically.
+    setInterval(this.Update.bind(this), this.config.updateInterval * 1000);
   }
 
+  /**
+   * Get characteristic values for correspondig sensors.
+   * @param sensor 
+   */
   public async GetSensorValue(sensor: VolvoSensorBindings): Promise<CharacteristicValue> {
     this.log.debug(`GET ${sensor}`);
     let value: CharacteristicValue;
     switch (sensor) {
       case VolvoSensorBindings.ENGINE_REMOTE_START_STATUS:
+        this.log.debug(this.state[VolvoSensorBindings.GROUP_ENGINE_REMOTE_START][VolvoSensorBindings.ENGINE_REMOTE_START_STATUS]);
         value =
-          this.state[VolvoSensorBindings.GROUP_ENGINE_REMOTE_START][VolvoSensorBindings.ENGINE_REMOTE_START_STATUS] ===
-          "on"
+          this.state[VolvoSensorBindings.GROUP_ENGINE_REMOTE_START][VolvoSensorBindings.ENGINE_REMOTE_START_STATUS] !==
+          "off"
             ? true
             : false;
         break;
@@ -91,7 +96,7 @@ export class Vehicle extends VehicleApi {
 
       case VolvoSensorBindings.BATTERY_PERCENT_LOW:
         value =
-          this.state[VolvoSensorBindings.GROUP_BATTERY]!.hvBatteryLevel < 20
+          this.state[VolvoSensorBindings.GROUP_BATTERY]!.hvBatteryLevel < this.config.batteryLowThreshold
             ? this.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW
             : this.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
         break;
@@ -140,6 +145,10 @@ export class Vehicle extends VehicleApi {
     return value;
   }
 
+  /**
+   * Set target value for lock.
+   * @param sensor 
+   */
   public async GetSensorTargetValue(sensor: VolvoSensorBindings.LOCK): Promise<CharacteristicValue> {
     if (sensor === VolvoSensorBindings.LOCK) {
       return this.lockTargetState;
@@ -209,8 +218,8 @@ export class Vehicle extends VehicleApi {
           return false;
         } else {
           await this.HonkAndBlink();
-          // Set status to off after 10 seconds
-          setTimeout(() => service.updateCharacteristic(this.Characteristic.On, false), 10000);
+          // Set status to off after 7 seconds
+          setTimeout(() => service.updateCharacteristic(this.Characteristic.On, false), 7000);
         }
         break;
 
@@ -221,7 +230,7 @@ export class Vehicle extends VehicleApi {
         } else {
           await this.Blink();
           // Set status to off after 10 seconds
-          setTimeout(() => service.updateCharacteristic(this.Characteristic.On, false), 10000);
+          setTimeout(() => service.updateCharacteristic(this.Characteristic.On, false), 7000);
         }
         break;
 
@@ -266,7 +275,7 @@ export class Vehicle extends VehicleApi {
         break;
     }
 
-    setTimeout(() => this.Update(), 20 * 1000); // Update 20 seconds after value change
+    setTimeout(() => this.Update(), 5 * 1000); // Update 5 seconds after value change
   }
 
   /**
@@ -275,9 +284,11 @@ export class Vehicle extends VehicleApi {
   private async Update(): Promise<void> {
     this.log.debug("Updating...");
     await this.RequestUpdate();
-    const newState = this.GetUpdate();
+    await wait(5);
+    const newState = await this.GetUpdate();
     if (this.bootUnlock) {
-      if (!(await newState).carLocked) {
+      // User has unlocked boot
+      if (!newState.carLocked) {
         // Car has been fully unlocked
         this.bootUnlock = false;
       } else {
@@ -285,11 +296,10 @@ export class Vehicle extends VehicleApi {
         // Manually set car unlocked, since boot is open. This isn't shown by the API,
         // only by querying for services by /services?active=true. No point in implementing this, since
         // this is stateful.
-        (await newState).carLocked = false;
+        newState.carLocked = false;
       }
-    } else {
-      await newState;
     }
+    this.state = newState;
   }
 
   private async Lock() {
@@ -301,7 +311,7 @@ export class Vehicle extends VehicleApi {
   }
 
   private async StartEngine() {
-    return await this.Call("engine/start", { runtime: 15 });
+    return await this.Call("engine/start", { runtime: this.config.engineStartDuration });
   }
 
   private async StopEngine() {
@@ -322,7 +332,14 @@ export class Vehicle extends VehicleApi {
   }
 
   private async Blink() {
-    await this.Call("honk_blink/blink", await this.GetHonkBlinkBody());
+    const success = await this.Call("honk_blink/lights", await this.GetHonkBlinkBody());
+    if (success) {
+      return true;
+    } else {
+      // This didn't work on my car, but might on others?
+      // ref: https://github.com/molobrakos/volvooncall/issues/19#issue-338097144
+      await this.Call("honk_blink/blink", await this.GetHonkBlinkBody());
+    }
   }
 
   /**

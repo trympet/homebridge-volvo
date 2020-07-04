@@ -1,9 +1,14 @@
-// types are based on responses for Volvo 2020 XC60 T8
+/* Types are based on responses for Volvo 2020 XC60 T8 */
 export interface Config {
+  name: string;
   region: string;
   email: string;
   password: string;
+  // Optional values
   VIN?: string;
+  updateInterval: number; // seconds
+  engineStartDuration: number; // minutes
+  batteryLowThreshold: number; // percentage
   enabledFeatures?: EnabledFeatures;  
 }
 
@@ -161,7 +166,7 @@ export interface HvBattery {
   hvBatteryChargeStatusTimestamp: Date;
   hvBatteryLevel: number;
   hvBatteryLevelTimestamp: Date;
-  distanceToHVBatteryEmpty: number;
+  distanceToHVBatteryEmpty: number | null;
   distanceToHVBatteryEmptyTimestamp: Date;
   hvBatteryChargeWarning: string;
   hvBatteryChargeWarningTimestamp: Date;
@@ -220,7 +225,7 @@ export interface VehicleState {
   remoteClimatizationStatusTimestamp: Date;
   serviceWarningStatus: string;
   serviceWarningStatusTimestamp: Date;
-  theftAlarm: TheftAlarm;
+  theftAlarm: TheftAlarm | null;
   timeFullyAccessibleUntil: Date;
   timePartiallyAccessibleUntil: Date;
   tripMeter1: number;

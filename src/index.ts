@@ -20,12 +20,14 @@ class VolvoPlatform extends REST {
 
   private vehicle: Vehicle;
   private vehicleCount = 0;
+  private readonly _BASENAME;
 
   constructor(log: Logger, config: AccessoryConfig, homebridgeApi: API) {
     super(getConfig(config));
 
     this.log = log;
     this.config = getConfig(config);
+    this._BASENAME = `${this.config.name} Vehicle `;
     this.api = homebridgeApi;
 
     log.info("Starting homebridge-volvo");
@@ -86,14 +88,14 @@ class VolvoPlatform extends REST {
     // Feature services
 
     if (this.vehicle.features[VolvoFeatureBindings.HONK_AND_BLINK]) {
-      const honkBlinkService = new Service.Switch("Volvo Alarm", "alarm");
+      const honkBlinkService = new Service.Switch(this._BASENAME + "Horn", "horn");
       honkBlinkService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HONK_AND_BLINK)))
         .on("set", cbfy(this.vehicle.SetSensorValue.bind(this.vehicle, VolvoActions.HONK_AND_BLINK, honkBlinkService)));
       // HONK_AND_OR_BLINK ∈ HONK_AND_BLINK
       if (this.vehicle.features[VolvoFeatureBindings.HONK_AND_OR_BLINK]) {
-        const blinkService = new Service.Lightbulb("Volvo Light", "light");
+        const blinkService = new Service.Lightbulb(this._BASENAME + "Light", "light");
         blinkService
           .getCharacteristic(Characteristic.On)
           .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.BLINK)))
@@ -104,7 +106,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.REMOTE_HEATER]) {
-      const heaterService = new Service.Switch("Volvo Heater", "heater");
+      const heaterService = new Service.Switch(this._BASENAME + "climate", "remoteHeater");
       heaterService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HEATER_STATUS)))
@@ -113,7 +115,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.PRECLIMATIZATION]) {
-      const heaterService = new Service.Switch("Volvo Heater", "heater");
+      const heaterService = new Service.Switch(this._BASENAME + "climate", "preclimatizationHeater");
       heaterService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HEATER_STATUS)))
@@ -122,7 +124,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.ENGINE_REMOTE_START]) {
-      const engineService = new Service.Switch("Volvo Engine Remote Start", "engine remote start");
+      const engineService = new Service.Switch(this._BASENAME + "Engine", "engineRemoteStart");
       engineService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.ENGINE_REMOTE_START_STATUS)))
@@ -134,7 +136,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.LOCK] || this.vehicle.features[VolvoFeatureBindings.UNLOCK]) {
-      const lockUnlockService = new Service.LockMechanism("Volvo Lock", "lock");
+      const lockUnlockService = new Service.LockMechanism(this._BASENAME + "Lock", "lock");
       lockUnlockService
         .getCharacteristic(Characteristic.LockCurrentState)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.LOCK)));
@@ -161,7 +163,7 @@ class VolvoPlatform extends REST {
     // Sensor services
 
     if (this.vehicle.features[VolvoFeatureBindings.BATTERY]) {
-      const batterySensorService = new Service.BatteryService("Volvo Battery", "battery");
+      const batterySensorService = new Service.BatteryService(this._BASENAME + "Battery", "battery");
       batterySensorService
         .getCharacteristic(Characteristic.BatteryLevel)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.BATTERY_PERCENT)));
@@ -174,7 +176,7 @@ class VolvoPlatform extends REST {
       services.push(batterySensorService);
     }
 
-    const engineRunningService = new Service.OccupancySensor("Volvo Engine Running", "engine");
+    const engineRunningService = new Service.OccupancySensor(this._BASENAME + "Engine Running", "engine");
     engineRunningService
       .getCharacteristic(Characteristic.OccupancyDetected)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.ENGINE_STATUS)));
@@ -185,7 +187,7 @@ class VolvoPlatform extends REST {
      *       OR use platform instead of accessory
      */
 
-    // const fuelSensorService = new Service.BatteryService("Volvo Fuel", "fuel");
+    // const fuelSensorService = new Service.BatteryService(this._BASENAME + "Fuel", "fuel");
     // fuelSensorService
     //   .getCharacteristic(Characteristic.BatteryLevel)
     //   .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.FUEL_PERCENT)));
@@ -197,25 +199,25 @@ class VolvoPlatform extends REST {
     //   .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.FUEL_PERCENT_LOW)));
     // services.push(fuelSensorService);
 
-    // const frontLeftTyreService = new Service.AirQualitySensor("Volvo Front Left", "front-left");
+    // const frontLeftTyreService = new Service.AirQualitySensor(this._BASENAME + "Front Left", "front-left");
     // frontLeftTyreService
     //   .getCharacteristic(Characteristic.AirQuality)
     //   .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.TYRE_FRONT_LEFT)));
     // services.push(frontLeftTyreService);
 
-    // const frontRightTyreService = new Service.AirQualitySensor("Volvo Front Right", "front-right");
+    // const frontRightTyreService = new Service.AirQualitySensor(this._BASENAME + "Front Right", "front-right");
     // frontRightTyreService
     //   .getCharacteristic(Characteristic.AirQuality)
     //   .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.TYRE_FRONT_RIGHT)));
     // services.push(frontRightTyreService);
 
-    // const rearLeftTyreService = new Service.AirQualitySensor("Volvo Rear Left", "rear-left");
+    // const rearLeftTyreService = new Service.AirQualitySensor(this._BASENAME + "Rear Left", "rear-left");
     // rearLeftTyreService
     //   .getCharacteristic(Characteristic.AirQuality)
     //   .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.TYRE_REAR_LEFT)));
     // services.push(rearLeftTyreService);
 
-    // const rearRightTyreService = new Service.AirQualitySensor("Volvo Rear Right", "rear-right");
+    // const rearRightTyreService = new Service.AirQualitySensor(this._BASENAME + "Rear Right", "rear-right");
     // rearRightTyreService
     //   .getCharacteristic(Characteristic.AirQuality)
     //   .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.TYRE_REAR_RIGHT)));

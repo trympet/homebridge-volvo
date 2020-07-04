@@ -1,33 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import { AccessoryConfig } from "homebridge";
-import * as dotenv from "dotenv";
 import { Config } from "./util/types";
-
-
-export function getConfig(config: AccessoryConfig): Config {
-  // load config
-  if (config && config["email"] && config["password"] && config["region"] !== undefined) {
-    return {
-      email: config.email,
-      password: config.password,
-      region: config.region,
-      VIN: config.VIN,
-    };
-  } else if (process.env["VOC_EMAIL"] && process.env["VOC_PASSWORD"]) {
-    dotenv.config();
-    return {
-      email: process.env.VOC_EMAIL,
-      password: process.env.VOC_PASSWORD,
-      region: process.env.VOC_REGION || "",
-      VIN: process.env.VIN,
-    };
-  }
-  throw new Error("No valid config provided.");
-}
+const DEFAULT_INTERVAL = 15;
+const DEFAULT_START_DURATION = 15;
+const DEFAULT_BATTERY_THRESHOLD = 20;
+/**
+ * Get vehicle config
+ * @param accessoryConfig - Config from homebridge API 
+ */
+export const getConfig = ({
+  name,
+  email,
+  password,
+  region,
+  VIN = undefined,
+  updateInterval = DEFAULT_INTERVAL,
+  engineStartDuration = DEFAULT_START_DURATION,
+  batteryLowThreshold = DEFAULT_BATTERY_THRESHOLD,
+}: AccessoryConfig): Config => {
+  // Ensure no illegal values.
+  updateInterval > 5 
+    ? updateInterval
+    : DEFAULT_INTERVAL;
+  1 <= engineStartDuration && engineStartDuration <= 15
+    ? engineStartDuration
+    : DEFAULT_START_DURATION;
+  1 <= batteryLowThreshold && batteryLowThreshold <=99
+    ? batteryLowThreshold
+    : DEFAULT_BATTERY_THRESHOLD;
+  return {
+    name,
+    email,
+    password,
+    region,
+    VIN,
+    updateInterval,
+    engineStartDuration,
+    batteryLowThreshold,
+  };
+};
 
 export function wait(seconds: number): Promise<void> {
-  return new Promise(r => setTimeout(r, seconds * 1000));
+  return new Promise((r) => setTimeout(r, seconds * 1000));
 }
 
 /**
