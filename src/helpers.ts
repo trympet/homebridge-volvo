@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import { AccessoryConfig } from "homebridge";
-import { Config } from "./util/types";
+import { Config, SensorNames } from "./util/types";
 const DEFAULT_INTERVAL = 15;
 const DEFAULT_START_DURATION = 15;
 const DEFAULT_BATTERY_THRESHOLD = 20;
@@ -40,6 +40,44 @@ export const getConfig = ({
     batteryLowThreshold,
   };
 };
+
+export function getSensorNames({
+  honkAndBlink = "Horn",
+  blink = "Lights",
+  heater = "Heater",
+  preclimatization = "Climate",
+  engineStart = "Engine",
+  lock = "Lock",
+  movement = "Movement",
+  tailgate = "Tailgate Door",
+  rearRightDoor = "Rear Right Door",
+  rearLeftDoor = "Rear Left Door",
+  frontRightDoor = "Front Right Door",
+  frontLeftDoor = "Front Left Door",
+  rearRightWindow = "Rear Right Window",
+  rearLeftWindow = "Rear Left Window",
+  frontRightWindow = "Front Right Window",
+  frontLeftWindow = "Front Left Window",
+}: Partial<SensorNames>): SensorNames {
+  return {
+    honkAndBlink,
+    blink,
+    heater,
+    preclimatization,
+    engineStart,
+    lock,
+    movement,
+    tailgate,
+    rearRightDoor,
+    rearLeftDoor,
+    frontRightDoor,
+    frontLeftDoor,
+    rearRightWindow,
+    rearLeftWindow,
+    frontRightWindow,
+    frontLeftWindow,
+  };
+}
 
 export function wait(seconds: number): Promise<void> {
   return new Promise((r) => setTimeout(r, seconds * 1000));

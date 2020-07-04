@@ -1,7 +1,8 @@
-import { Config, VehicleAttributes, User, VolvoFeatureBindings, VolvoSensorBindings, VolvoActions } from "./util/types";
+/* eslint-disable max-len */
+import { Config, VehicleAttributes, User, VolvoFeatureBindings, VolvoSensorBindings, VolvoActions, SensorNames } from "./util/types";
 import { Service as IService, Characteristic as ICharacteristic, AccessoryConfig, Logger } from "homebridge";
 import { HomebridgeAPI, API } from "homebridge/lib/api";
-import { getConfig, cbfy } from "./helpers";
+import { getConfig, cbfy, getSensorNames } from "./helpers";
 import { Vehicle } from "./util/vehicle";
 import { REST } from "./util/rest";
 
@@ -15,17 +16,18 @@ export default function (homebridge: HomebridgeAPI) {
 
 class VolvoPlatform extends REST {
   private readonly config: Config;
+  private readonly sensorNames: SensorNames;
 
   private vehicle: Vehicle;
   private vehicleCount = 0;
   private readonly _BASENAME;
   private AccessoryInformationService;
 
-  constructor(private readonly log: Logger, config: AccessoryConfig, private readonly api: API) {
-    super(getConfig(config));
-
+  constructor(private readonly log: Logger, accessoryConfig: AccessoryConfig, private readonly api: API) {
+    super(getConfig(accessoryConfig));
     this.log = log;
-    this.config = getConfig(config);
+    this.config = getConfig(accessoryConfig);
+    this.sensorNames = getSensorNames(accessoryConfig.sensorNames);
     this._BASENAME = `${this.config.name} `;
 
     log.info("Starting homebridge-volvo");
@@ -89,14 +91,14 @@ class VolvoPlatform extends REST {
     // Feature services
 
     if (this.vehicle.features[VolvoFeatureBindings.HONK_AND_BLINK]) {
-      const honkBlinkService = new Service.Switch(this._BASENAME + "Horn", "horn");
+      const honkBlinkService = new Service.Switch(this._BASENAME + this.sensorNames.honkAndBlink, VolvoFeatureBindings.HONK_AND_BLINK);
       honkBlinkService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HONK_AND_BLINK)))
         .on("set", cbfy(this.vehicle.SetSensorValue.bind(this.vehicle, VolvoActions.HONK_AND_BLINK, honkBlinkService)));
       // HONK_AND_OR_BLINK ∈ HONK_AND_BLINK
       if (this.vehicle.features[VolvoFeatureBindings.HONK_AND_OR_BLINK]) {
-        const blinkService = new Service.Lightbulb(this._BASENAME + "Light", "light");
+        const blinkService = new Service.Lightbulb(this._BASENAME + this.sensorNames.blink, VolvoFeatureBindings.HONK_AND_OR_BLINK);
         blinkService
           .getCharacteristic(Characteristic.On)
           .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.BLINK)))
@@ -107,7 +109,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.REMOTE_HEATER]) {
-      const heaterService = new Service.Switch(this._BASENAME + "Heater", "remoteHeater");
+      const heaterService = new Service.Switch(this._BASENAME + this.sensorNames.heater, VolvoFeatureBindings.REMOTE_HEATER);
       heaterService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HEATER_STATUS)))
@@ -116,7 +118,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.PRECLIMATIZATION]) {
-      const heaterService = new Service.Switch(this._BASENAME + "Climate", "preclimatizationHeater");
+      const heaterService = new Service.Switch(this._BASENAME + this.sensorNames.preclimatization, VolvoFeatureBindings.PRECLIMATIZATION);
       heaterService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HEATER_STATUS)))
@@ -125,7 +127,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.ENGINE_REMOTE_START]) {
-      const engineService = new Service.Switch(this._BASENAME + "Engine", "engineRemoteStart");
+      const engineService = new Service.Switch(this._BASENAME + this.sensorNames.engineStart, VolvoFeatureBindings.ENGINE_REMOTE_START);
       engineService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.ENGINE_REMOTE_START_STATUS)))
@@ -137,7 +139,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.LOCK] || this.vehicle.features[VolvoFeatureBindings.UNLOCK]) {
-      const lockUnlockService = new Service.LockMechanism(this._BASENAME + "Lock", "lock");
+      const lockUnlockService = new Service.LockMechanism(this._BASENAME + this.sensorNames.lock, VolvoFeatureBindings.LOCK);
       lockUnlockService
         .getCharacteristic(Characteristic.LockCurrentState)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.LOCK)));
@@ -163,7 +165,7 @@ class VolvoPlatform extends REST {
     // Sensor services
 
     if (this.vehicle.features[VolvoFeatureBindings.BATTERY]) {
-      const batterySensorService = new Service.BatteryService(this._BASENAME, "battery");
+      const batterySensorService = new Service.BatteryService(this._BASENAME, VolvoSensorBindings.BATTERY_PERCENT);
       batterySensorService
         .getCharacteristic(Characteristic.BatteryLevel)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.BATTERY_PERCENT)));
@@ -175,7 +177,7 @@ class VolvoPlatform extends REST {
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.BATTERY_CHARGE_STATUS)));
       services.push(batterySensorService);
     } else {
-      const fuelSensorService = new Service.BatteryService(this._BASENAME + "Fuel", "fuel");
+      const fuelSensorService = new Service.BatteryService(this._BASENAME, VolvoSensorBindings.FUEL_PERCENT);
       fuelSensorService
         .getCharacteristic(Characteristic.BatteryLevel)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.FUEL_PERCENT)));
@@ -188,61 +190,61 @@ class VolvoPlatform extends REST {
       services.push(fuelSensorService);
     }
 
-    const engineRunningService = new Service.OccupancySensor(this._BASENAME + "Occupancy", "engine");
+    const engineRunningService = new Service.MotionSensor(this._BASENAME + this.sensorNames.movement, VolvoSensorBindings.ENGINE_STATUS);
     engineRunningService
-      .getCharacteristic(Characteristic.OccupancyDetected)
+      .getCharacteristic(Characteristic.MotionDetected)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.ENGINE_STATUS)));
     services.push(engineRunningService);
 
-    const tailgateDoorService = new Service.ContactSensor(this._BASENAME + "Tailgate Door", "tailgateDoor");
+    const tailgateDoorService = new Service.ContactSensor(this._BASENAME + this.sensorNames.tailgate, VolvoSensorBindings.DOOR_TAILGATE);
     tailgateDoorService
       .getCharacteristic(Characteristic.ContactSensorState)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_TAILGATE)));
     services.push(tailgateDoorService);
 
-    const rearRightDoorService = new Service.ContactSensor(this._BASENAME + "Rear Right Door", "rearRightDoor");
+    const rearRightDoorService = new Service.ContactSensor(this._BASENAME + this.sensorNames.rearRightDoor, VolvoSensorBindings.DOOR_REAR_RIGHT);
     rearRightDoorService
       .getCharacteristic(Characteristic.ContactSensorState)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_REAR_RIGHT)));
     services.push(rearRightDoorService);
 
-    const rearLeftDoorService = new Service.ContactSensor(this._BASENAME + "Rear Left Door", "rearLeftDoor");
+    const rearLeftDoorService = new Service.ContactSensor(this._BASENAME + this.sensorNames.rearLeftDoor, VolvoSensorBindings.DOOR_REAR_LEFT);
     rearLeftDoorService
       .getCharacteristic(Characteristic.ContactSensorState)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_REAR_LEFT)));
     services.push(rearLeftDoorService);
 
-    const frontRightDoorService = new Service.ContactSensor(this._BASENAME + "Front Right Door", "frontRightDoor");
+    const frontRightDoorService = new Service.ContactSensor(this._BASENAME + this.sensorNames.frontRightDoor, VolvoSensorBindings.DOOR_FRONT_RIGHT);
     frontRightDoorService
       .getCharacteristic(Characteristic.ContactSensorState)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_FRONT_RIGHT)));
     services.push(frontRightDoorService);
 
-    const frontLeftDoorService = new Service.ContactSensor(this._BASENAME + "Front Left Door", "frontLeftDoor");
+    const frontLeftDoorService = new Service.ContactSensor(this._BASENAME + this.sensorNames.frontLeftDoor, VolvoSensorBindings.DOOR_FRONT_LEFT);
     frontLeftDoorService
       .getCharacteristic(Characteristic.ContactSensorState)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_FRONT_LEFT)));
     services.push(frontLeftDoorService);
 
-    const rearRightWindowService = new Service.ContactSensor(this._BASENAME + "Rear Right Window", "rearRightWindow");
+    const rearRightWindowService = new Service.ContactSensor(this._BASENAME + this.sensorNames.rearRightWindow, VolvoSensorBindings.WINDOW_REAR_RIGHT);
     rearRightWindowService
       .getCharacteristic(Characteristic.ContactSensorState)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.WINDOW_REAR_RIGHT)));
     services.push(rearRightWindowService);
 
-    const rearLeftWindowService = new Service.ContactSensor(this._BASENAME + "Rear Left Window", "rearLeftWindow");
+    const rearLeftWindowService = new Service.ContactSensor(this._BASENAME + this.sensorNames.rearLeftWindow, VolvoSensorBindings.WINDOW_REAR_LEFT);
     rearLeftWindowService
       .getCharacteristic(Characteristic.ContactSensorState)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.WINDOW_REAR_LEFT)));
     services.push(rearLeftWindowService);
 
-    const frontRightWindowService = new Service.ContactSensor(this._BASENAME + "Front Right Window", "frontRightWindow");
+    const frontRightWindowService = new Service.ContactSensor(this._BASENAME + this.sensorNames.frontRightWindow, VolvoSensorBindings.WINDOW_FRONT_RIGHT);
     frontRightWindowService
       .getCharacteristic(Characteristic.ContactSensorState)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.WINDOW_FRONT_RIGHT)));
     services.push(frontRightWindowService);
 
-    const frontLeftWindowService = new Service.ContactSensor(this._BASENAME + "Front Left Window", "frontLeftWindow");
+    const frontLeftWindowService = new Service.ContactSensor(this._BASENAME + this.sensorNames.frontLeftWindow, VolvoSensorBindings.WINDOW_FRONT_LEFT);
     frontLeftWindowService
       .getCharacteristic(Characteristic.ContactSensorState)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.WINDOW_FRONT_LEFT)));

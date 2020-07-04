@@ -95,7 +95,7 @@ export class Vehicle extends VehicleApi {
 
       case VolvoSensorBindings.BATTERY_CHARGE_STATUS:
         value =
-          this.state[VolvoSensorBindings.GROUP_BATTERY]![sensor] === "Started"
+          this.state[VolvoSensorBindings.GROUP_BATTERY]![sensor] === "ChargeProgress"
             ? this.Characteristic.ChargingState.CHARGING
             : this.Characteristic.ChargingState.NOT_CHARGING;
         break;
@@ -125,8 +125,8 @@ export class Vehicle extends VehicleApi {
         VolvoSensorBindings.DOOR_REAR_RIGHT:
         value = 
           this.state[VolvoSensorBindings.GROUP_DOORS][sensor]
-            ? this.Characteristic.ContactSensorState.CONTACT_DETECTED
-            : this.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+            ? this.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+            : this.Characteristic.ContactSensorState.CONTACT_DETECTED;
         break;
 
       case VolvoSensorBindings.WINDOW_FRONT_LEFT ||
@@ -135,8 +135,8 @@ export class Vehicle extends VehicleApi {
         VolvoSensorBindings.WINDOW_REAR_RIGHT:
         value = 
           this.state[VolvoSensorBindings.GROUP_WINDOWS][sensor]
-            ? this.Characteristic.ContactSensorState.CONTACT_DETECTED
-            : this.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+            ? this.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+            : this.Characteristic.ContactSensorState.CONTACT_DETECTED;
         break;
 
       case VolvoSensorBindings.TYRE_FRONT_LEFT ||
@@ -159,8 +159,8 @@ export class Vehicle extends VehicleApi {
 
       case VolvoSensorBindings.ENGINE_STATUS:
         value = this.state[sensor]
-          ? this.Characteristic.OccupancyDetected.OCCUPANCY_DETECTED
-          : this.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED;
+          ? true
+          : false;
         break;
 
       case VolvoSensorBindings.LOCK:

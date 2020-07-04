@@ -1,15 +1,34 @@
 /* Types are based on responses for Volvo 2020 XC60 T8 */
 export interface Config {
-  name: string;
-  region: string;
-  email: string;
-  password: string;
+  readonly name: string;
+  readonly region: string;
+  readonly email: string;
+  readonly password: string;
   // Optional values
-  VIN?: string;
-  updateInterval: number; // seconds
-  engineStartDuration: number; // minutes
-  batteryLowThreshold: number; // percentage
-  enabledFeatures?: EnabledFeatures;
+  readonly VIN?: string;
+  readonly updateInterval: number; // seconds
+  readonly engineStartDuration: number; // minutes
+  readonly batteryLowThreshold: number; // percentage
+  readonly enabledFeatures?: EnabledFeatures;
+}
+
+export interface SensorNames {
+  honkAndBlink: string;
+  blink: string;
+  heater: string;
+  preclimatization: string;
+  engineStart: string;
+  lock: string;
+  movement: string;
+  tailgate: string;
+  rearRightDoor: string;
+  rearLeftDoor: string;
+  frontRightDoor: string;
+  frontLeftDoor: string;
+  rearRightWindow: string;
+  rearLeftWindow: string;
+  frontRightWindow: string;
+  frontLeftWindow: string;
 }
 
 export interface EnabledFeatures {
@@ -293,7 +312,7 @@ export enum VolvoSensorBindings {
   DOOR_TAILGATE = "tailgateOpen",
   DOOR_REAR_RIGHT = "rearRightDoorOpen",
   DOOR_REAR_LEFT = "rearLeftDoorOpen",
-  DOOR_FRONT_RIGHT= "frontRightDoorOpen",
+  DOOR_FRONT_RIGHT = "frontRightDoorOpen",
   DOOR_FRONT_LEFT = "frontLeftDoorOpen",
   WINDOW_REAR_RIGHT = "rearRightWindowOpen",
   WINDOW_REAR_LEFT = "rearLeftWindowOpen",
