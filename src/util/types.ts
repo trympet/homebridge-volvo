@@ -131,6 +131,7 @@ export interface ERS {
   engineStartWarning: string;
   engineStartWarningTimestamp: Date;
 }
+
 export interface Doors {
   tailgateOpen: boolean;
   rearRightDoorOpen: boolean;
@@ -140,6 +141,7 @@ export interface Doors {
   hoodOpen: boolean;
   timestamp: Date;
 }
+
 export interface SeatSelection {
   frontDriverSide: boolean;
   frontPassengerSide: boolean;
@@ -147,10 +149,12 @@ export interface SeatSelection {
   rearPassengerSide: boolean;
   rearMid: boolean;
 }
+
 export interface Timer {
   time?: any;
   state?: any;
 }
+
 export interface Heater {
   seatSelection: SeatSelection;
   status: "off" | "on";
@@ -158,6 +162,7 @@ export interface Heater {
   timer2: Timer;
   timestamp: Date;
 }
+
 export interface HvBattery {
   hvBatteryChargeStatusDerived: string;
   hvBatteryChargeStatusDerivedTimestamp: Date;
@@ -169,16 +174,18 @@ export interface HvBattery {
   hvBatteryLevelTimestamp: Date;
   distanceToHVBatteryEmpty: number | null;
   distanceToHVBatteryEmptyTimestamp: Date;
-  hvBatteryChargeWarning: string;
+  hvBatteryChargeWarning: string | null;
   hvBatteryChargeWarningTimestamp: Date;
   timeToHVBatteryFullyCharged: number;
   timeToHVBatteryFullyChargedTimestamp: Date;
 }
+
 export interface TheftAlarm {
   longitude: number;
   latitude: number;
   timestamp: Date;
 }
+
 export interface TyrePressure {
   frontLeftTyrePressure: TyrePressureStatus;
   frontRightTyrePressure: TyrePressureStatus;
@@ -186,6 +193,7 @@ export interface TyrePressure {
   rearRightTyrePressure: TyrePressureStatus;
   timestamp: Date;
 }
+
 export interface Windows {
   frontLeftWindowOpen: boolean;
   frontRightWindowOpen: boolean;
@@ -193,6 +201,7 @@ export interface Windows {
   rearLeftWindowOpen: boolean;
   rearRightWindowOpen: boolean;
 }
+
 export interface VehicleState {
   ERS: ERS;
   averageFuelConsumption: number;
@@ -265,11 +274,10 @@ export enum VolvoSensorBindings {
   GROUP_HEATER = "heater",
   GROUP_BATTERY = "hvBattery",
   GROUP_TYRE = "tyrePressure",
-  // GROUP_DOORS = "doors",
-  // GROUP_WINDOWS = "windows",
-
+  GROUP_DOORS = "doors",
+  GROUP_WINDOWS = "windows",
   // sensor keys
-  LOCK = "carLocked", // only allows locked -> unlocked
+  LOCK = "carLocked",
   ENGINE_REMOTE_START_STATUS = "status",
   ENGINE_STATUS = "engineRunning",
   FUEL_PERCENT = "fuelAmountLevel",
@@ -282,9 +290,19 @@ export enum VolvoSensorBindings {
   TYRE_REAR_LEFT = "rearLeftTyrePressure",
   TYRE_FRONT_RIGHT = "frontRightTyrePressure",
   TYRE_FRONT_LEFT = "frontLeftTyrePressure",
+  DOOR_TAILGATE = "tailgateOpen",
+  DOOR_REAR_RIGHT = "rearRightDoorOpen",
+  DOOR_REAR_LEFT = "rearLeftDoorOpen",
+  DOOR_FRONT_RIGHT= "frontRightDoorOpen",
+  DOOR_FRONT_LEFT = "frontLeftDoorOpen",
+  WINDOW_REAR_RIGHT = "rearRightWindowOpen",
+  WINDOW_REAR_LEFT = "rearLeftWindowOpen",
+  WINDOW_FRONT_RIGHT = "frontRightWindowOpen",
+  WINDOW_FRONT_LEFT = "frontLeftWindowOpen",
   HONK_AND_BLINK = "honkBlinkActive",
   BLINK = "blinkActive",
 }
+
 /**
  * Binding between calls to the VOC api and user actions
  */
@@ -298,13 +316,3 @@ export enum VolvoActions {
   BLINK,
   ENGINE_REMOTE_START,
 }
-
-// DONE:
-// Battery sensor
-// engine running sensor
-// Lock
-// honk and blink
-// blink
-// heater
-// ERS
-// fuel level

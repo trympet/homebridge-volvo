@@ -26,14 +26,14 @@ class VolvoPlatform extends REST {
 
     this.log = log;
     this.config = getConfig(config);
-    this._BASENAME = `${this.config.name} Vehicle `;
+    this._BASENAME = `${this.config.name} `;
 
     log.info("Starting homebridge-volvo");
 
     this.vehicle = this.GetVehicleSync();
     const vehicleModel = `${this.vehicle.attr.modelYear} ${this.vehicle.attr.vehicleType}`;
     log.info(
-      `Got vehicle ${vehicleModel}} with registration number ${this.vehicle.attr.registrationNumber}.`,
+      `Got vehicle ${vehicleModel} with registration number ${this.vehicle.attr.registrationNumber}.`,
     );
     this.AccessoryInformationService = new this.api.hap.Service.AccessoryInformation()
       .setCharacteristic(Characteristic.Manufacturer, "Volvo")
@@ -107,7 +107,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.REMOTE_HEATER]) {
-      const heaterService = new Service.Switch(this._BASENAME + "climate", "remoteHeater");
+      const heaterService = new Service.Switch(this._BASENAME + "Heater", "remoteHeater");
       heaterService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HEATER_STATUS)))
@@ -116,7 +116,7 @@ class VolvoPlatform extends REST {
     }
 
     if (this.vehicle.features[VolvoFeatureBindings.PRECLIMATIZATION]) {
-      const heaterService = new Service.Switch(this._BASENAME + "climate", "preclimatizationHeater");
+      const heaterService = new Service.Switch(this._BASENAME + "Climate", "preclimatizationHeater");
       heaterService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HEATER_STATUS)))
@@ -163,7 +163,7 @@ class VolvoPlatform extends REST {
     // Sensor services
 
     if (this.vehicle.features[VolvoFeatureBindings.BATTERY]) {
-      const batterySensorService = new Service.BatteryService(this._BASENAME + "Battery", "battery");
+      const batterySensorService = new Service.BatteryService(this._BASENAME, "battery");
       batterySensorService
         .getCharacteristic(Characteristic.BatteryLevel)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.BATTERY_PERCENT)));
@@ -174,30 +174,82 @@ class VolvoPlatform extends REST {
         .getCharacteristic(Characteristic.ChargingState)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.BATTERY_CHARGE_STATUS)));
       services.push(batterySensorService);
+    } else {
+      const fuelSensorService = new Service.BatteryService(this._BASENAME + "Fuel", "fuel");
+      fuelSensorService
+        .getCharacteristic(Characteristic.BatteryLevel)
+        .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.FUEL_PERCENT)));
+      fuelSensorService
+        .getCharacteristic(Characteristic.ChargingState)
+        .on("get", cbfy(async () => Characteristic.ChargingState.NOT_CHARGING)); // fuel tank will never charge, sadly :(
+      fuelSensorService
+        .getCharacteristic(Characteristic.StatusLowBattery)
+        .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.FUEL_PERCENT_LOW)));
+      services.push(fuelSensorService);
     }
 
-    const engineRunningService = new Service.OccupancySensor(this._BASENAME + "Engine Running", "engine");
+    const engineRunningService = new Service.OccupancySensor(this._BASENAME + "Occupancy", "engine");
     engineRunningService
       .getCharacteristic(Characteristic.OccupancyDetected)
       .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.ENGINE_STATUS)));
     services.push(engineRunningService);
 
-    /* One single accessory only supports one battery level sensor and one air quality sensor
-     * Todo: allow for toggle between battery sensor and fuel sensor in config.json
-     *       OR use platform instead of accessory
-     */
+    const tailgateDoorService = new Service.ContactSensor(this._BASENAME + "Tailgate Door", "tailgateDoor");
+    tailgateDoorService
+      .getCharacteristic(Characteristic.ContactSensorState)
+      .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_TAILGATE)));
+    services.push(tailgateDoorService);
 
-    // const fuelSensorService = new Service.BatteryService(this._BASENAME + "Fuel", "fuel");
-    // fuelSensorService
-    //   .getCharacteristic(Characteristic.BatteryLevel)
-    //   .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.FUEL_PERCENT)));
-    // fuelSensorService
-    //   .getCharacteristic(Characteristic.ChargingState)
-    //   .on("get", async () => Characteristic.ChargingState.NOT_CHARGING); // fuel tank will never charge, sadly :(
-    // fuelSensorService
-    //   .getCharacteristic(Characteristic.StatusLowBattery)
-    //   .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.FUEL_PERCENT_LOW)));
-    // services.push(fuelSensorService);
+    const rearRightDoorService = new Service.ContactSensor(this._BASENAME + "Rear Right Door", "rearRightDoor");
+    rearRightDoorService
+      .getCharacteristic(Characteristic.ContactSensorState)
+      .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_REAR_RIGHT)));
+    services.push(rearRightDoorService);
+
+    const rearLeftDoorService = new Service.ContactSensor(this._BASENAME + "Rear Left Door", "rearLeftDoor");
+    rearLeftDoorService
+      .getCharacteristic(Characteristic.ContactSensorState)
+      .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_REAR_LEFT)));
+    services.push(rearLeftDoorService);
+
+    const frontRightDoorService = new Service.ContactSensor(this._BASENAME + "Front Right Door", "frontRightDoor");
+    frontRightDoorService
+      .getCharacteristic(Characteristic.ContactSensorState)
+      .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_FRONT_RIGHT)));
+    services.push(frontRightDoorService);
+
+    const frontLeftDoorService = new Service.ContactSensor(this._BASENAME + "Front Left Door", "frontLeftDoor");
+    frontLeftDoorService
+      .getCharacteristic(Characteristic.ContactSensorState)
+      .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.DOOR_FRONT_LEFT)));
+    services.push(frontLeftDoorService);
+
+    const rearRightWindowService = new Service.ContactSensor(this._BASENAME + "Rear Right Window", "rearRightWindow");
+    rearRightWindowService
+      .getCharacteristic(Characteristic.ContactSensorState)
+      .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.WINDOW_REAR_RIGHT)));
+    services.push(rearRightWindowService);
+
+    const rearLeftWindowService = new Service.ContactSensor(this._BASENAME + "Rear Left Window", "rearLeftWindow");
+    rearLeftWindowService
+      .getCharacteristic(Characteristic.ContactSensorState)
+      .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.WINDOW_REAR_LEFT)));
+    services.push(rearLeftWindowService);
+
+    const frontRightWindowService = new Service.ContactSensor(this._BASENAME + "Front Right Window", "frontRightWindow");
+    frontRightWindowService
+      .getCharacteristic(Characteristic.ContactSensorState)
+      .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.WINDOW_FRONT_RIGHT)));
+    services.push(frontRightWindowService);
+
+    const frontLeftWindowService = new Service.ContactSensor(this._BASENAME + "Front Left Window", "frontLeftWindow");
+    frontLeftWindowService
+      .getCharacteristic(Characteristic.ContactSensorState)
+      .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.WINDOW_FRONT_LEFT)));
+    services.push(frontLeftWindowService);
+
+
+    /* Multipe air quality services from one accessory seems to not be supported. */
 
     // const frontLeftTyreService = new Service.AirQualitySensor(this._BASENAME + "Front Left", "front-left");
     // frontLeftTyreService

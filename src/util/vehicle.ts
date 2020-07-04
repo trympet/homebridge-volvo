@@ -118,6 +118,27 @@ export class Vehicle extends VehicleApi {
             : this.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
         break;
 
+      case VolvoSensorBindings.DOOR_TAILGATE ||
+        VolvoSensorBindings.DOOR_FRONT_LEFT ||
+        VolvoSensorBindings.DOOR_FRONT_RIGHT ||
+        VolvoSensorBindings.DOOR_REAR_LEFT ||
+        VolvoSensorBindings.DOOR_REAR_RIGHT:
+        value = 
+          this.state[VolvoSensorBindings.GROUP_DOORS][sensor]
+            ? this.Characteristic.ContactSensorState.CONTACT_DETECTED
+            : this.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+        break;
+
+      case VolvoSensorBindings.WINDOW_FRONT_LEFT ||
+        VolvoSensorBindings.WINDOW_FRONT_RIGHT ||
+        VolvoSensorBindings.WINDOW_REAR_LEFT ||
+        VolvoSensorBindings.WINDOW_REAR_RIGHT:
+        value = 
+          this.state[VolvoSensorBindings.GROUP_WINDOWS][sensor]
+            ? this.Characteristic.ContactSensorState.CONTACT_DETECTED
+            : this.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+        break;
+
       case VolvoSensorBindings.TYRE_FRONT_LEFT ||
         VolvoSensorBindings.TYRE_FRONT_RIGHT ||
         VolvoSensorBindings.TYRE_REAR_LEFT ||
@@ -189,6 +210,7 @@ export class Vehicle extends VehicleApi {
         if (value === this.Characteristic.LockTargetState.SECURED) {
           return false;
         }
+
         this.lockTargetState = value;
         success = await this.Unlock();
         if (success) {
@@ -200,6 +222,7 @@ export class Vehicle extends VehicleApi {
         this.lockTargetState = value;
         if (value === this.Characteristic.LockTargetState.SECURED) {
           success = await this.Lock();
+          this.bootUnlock = false;
         } else {
           this.bootUnlock = true;
           success = await this.Unlock();
@@ -212,7 +235,6 @@ export class Vehicle extends VehicleApi {
               );
               // Boot unlock has passed. Car is locking automatically
               this.bootUnlock = false;
-              this.state.carLocked = true;
             }
           }, this.attr.unlockTimeFrame);
         }
@@ -223,8 +245,8 @@ export class Vehicle extends VehicleApi {
         break;
 
       case VolvoActions.HONK_AND_BLINK:
-        if (value === false) {
-          // Can't turn off again
+        if (value === false || this.state.engineRunning) {
+          // Stateless and not available while engine running.
           return false;
         } else {
           await this.HonkAndBlink();
@@ -234,8 +256,8 @@ export class Vehicle extends VehicleApi {
         break;
 
       case VolvoActions.BLINK:
-        if (value === false) {
-          // Can't turn off again
+        if (value === false || this.state.engineRunning) {
+          // Stateless and not available while engine running.
           return false;
         } else {
           await this.Blink();
