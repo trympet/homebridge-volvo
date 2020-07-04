@@ -14,30 +14,31 @@ export default function (homebridge: HomebridgeAPI) {
 }
 
 class VolvoPlatform extends REST {
-  private readonly log: Logger;
   private readonly config: Config;
-  private readonly api: API;
 
   private vehicle: Vehicle;
   private vehicleCount = 0;
   private readonly _BASENAME;
+  private AccessoryInformationService;
 
-  constructor(log: Logger, config: AccessoryConfig, homebridgeApi: API) {
+  constructor(private readonly log: Logger, config: AccessoryConfig, private readonly api: API) {
     super(getConfig(config));
 
     this.log = log;
     this.config = getConfig(config);
     this._BASENAME = `${this.config.name} Vehicle `;
-    this.api = homebridgeApi;
 
     log.info("Starting homebridge-volvo");
 
     this.vehicle = this.GetVehicleSync();
-
+    const vehicleModel = `${this.vehicle.attr.modelYear} ${this.vehicle.attr.vehicleType}`;
     log.info(
-      `Got vehicle ${this.vehicle.attr.modelYear} ${this.vehicle.attr.vehicleType} with` +
-        ` registration number ${this.vehicle.attr.registrationNumber}.`,
+      `Got vehicle ${vehicleModel}} with registration number ${this.vehicle.attr.registrationNumber}.`,
     );
+    this.AccessoryInformationService = new this.api.hap.Service.AccessoryInformation()
+      .setCharacteristic(Characteristic.Manufacturer, "Volvo")
+      .setCharacteristic(Characteristic.SerialNumber, this.vehicle.attr.registrationNumber)
+      .setCharacteristic(Characteristic.Model, vehicleModel);
   }
 
   private async GetVehicle(): Promise<Vehicle> {
@@ -83,7 +84,7 @@ class VolvoPlatform extends REST {
   }
 
   public getServices() {
-    const services: IService[] = [];
+    const services: IService[] = [this.AccessoryInformationService];
 
     // Feature services
 
@@ -119,7 +120,7 @@ class VolvoPlatform extends REST {
       heaterService
         .getCharacteristic(Characteristic.On)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HEATER_STATUS)))
-        .on("set", cbfy(this.vehicle.SetSensorValue.bind(this.vehicle, VolvoActions.HEATER, heaterService)));
+        .on("set", cbfy(this.vehicle.SetSensorValue.bind(this.vehicle, VolvoActions.PRECLIMATIZATION, heaterService)));
       services.push(heaterService);
     }
 
@@ -140,7 +141,6 @@ class VolvoPlatform extends REST {
       lockUnlockService
         .getCharacteristic(Characteristic.LockCurrentState)
         .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.LOCK)));
-      lockUnlockService.setCharacteristic(Characteristic.LockCurrentState, Characteristic.LockCurrentState.SECURED); // Prevents "Locking...."
       lockUnlockService
         .getCharacteristic(Characteristic.LockTargetState)
         .on("get", cbfy(this.vehicle.GetSensorTargetValue.bind(this.vehicle, VolvoSensorBindings.LOCK)));
@@ -223,7 +223,7 @@ class VolvoPlatform extends REST {
     //   .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.TYRE_REAR_RIGHT)));
     // services.push(rearRightTyreService);
 
-    if (services.length === 0) {
+    if (services.length === 1) {
       this.log.error("Could not find any capabilities for your car. Something has gone wrong. Sorry man :/");
     }
 
