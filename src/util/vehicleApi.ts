@@ -12,14 +12,13 @@ export class VehicleApi extends REST {
   private VALID_STATUS = ["Queued", "Started"];
 
   /**
-   * Make a remote method call
+   * Make a call to the VOC API.
    */
   public async Call(method: string, data?: Record<string, unknown>) {
     const initialCall: CallState = await this.Post(method, this.vehicleUrl, data);
-    if (
-      (!initialCall["service"] || !initialCall["status"] || !this.VALID_STATUS.includes(initialCall["status"] || ""))
-    ) {
+    if (!initialCall["service"] || !initialCall["status"] || !this.VALID_STATUS.includes(initialCall["status"] || "")) {
       console.warn(`Failed to execute ${method}: ${initialCall["errorDescription"]}`);
+      console.log(JSON.stringify(initialCall));
       return false;
     }
     return await this.CheckCallState(initialCall);
@@ -55,16 +54,27 @@ export class VehicleApi extends REST {
 
   private async GetCallState(serviceUrl: string) {
     const response: CallState = await this.Get("", serviceUrl);
-    console.log(response);
     return await this.CheckCallState(response);
   }
 
+  /**
+   * Gets the current position of your car.
+   * If position delta > 500m, sirens and horns won't work.
+   */
   public async GetVehiclePosition(): Promise<PositionResponse> {
-    return await this.Get("position");
+    return await this.Get("position", this.vehicleUrl);
   }
 
   /**
-   * Updates the state of the vehicle
+   * Tells the VOC API to fetch the state from your car.
+   * Timestamps in state will reflect this.
+   */
+  public async RequestUpdate(): Promise<void> {
+    return await this.Post("updatestatus", this.vehicleUrl);
+  }
+
+  /**
+   * Gets the state from the VOC API
    */
   public async GetUpdate(): Promise<VehicleState> {
     return await this.Get("status", this.vehicleUrl);

@@ -30,6 +30,7 @@ export class Vehicle extends VehicleApi {
     // Add default values to honk and blink state
     state["honkBlinkActive"] = false;
     state["blinkActive"] = false;
+
     this.lockTargetState = state[VolvoSensorBindings.LOCK]
       ? this.Characteristic.LockTargetState.SECURED
       : this.Characteristic.LockTargetState.UNSECURED;
@@ -50,6 +51,10 @@ export class Vehicle extends VehicleApi {
     this.features[VolvoFeatureBindings.ENGINE_REMOTE_START] = this.attr.engineStartSupported;
     this.features[VolvoFeatureBindings.BATTERY] = this.attr.highVoltageBatterySupported;
 
+    const getFeatures = (): string => Object.keys(this.features).filter(k => this.features[k]).join("\n\t");
+
+    this.log.info(`Features available:\n\t${getFeatures()}`);
+
     if (this.config.enabledFeatures) {
       for (const feature in this.config.enabledFeatures) {
         if (Object.prototype.hasOwnProperty.call(this.config, feature) && !this.config.enabledFeatures[feature]) {
@@ -58,20 +63,25 @@ export class Vehicle extends VehicleApi {
         }
       }
     }
+
+    this.log.info(`Features enabled:\n\t${getFeatures()}`);
+
     // Update periodically.
     setInterval(this.Update.bind(this), this.config.updateInterval * 1000);
   }
 
   /**
    * Get characteristic values for correspondig sensors.
-   * @param sensor 
+   * @param sensor
    */
   public async GetSensorValue(sensor: VolvoSensorBindings): Promise<CharacteristicValue> {
     this.log.debug(`GET ${sensor}`);
     let value: CharacteristicValue;
     switch (sensor) {
       case VolvoSensorBindings.ENGINE_REMOTE_START_STATUS:
-        this.log.debug(this.state[VolvoSensorBindings.GROUP_ENGINE_REMOTE_START][VolvoSensorBindings.ENGINE_REMOTE_START_STATUS]);
+        this.log.debug(
+          this.state[VolvoSensorBindings.GROUP_ENGINE_REMOTE_START][VolvoSensorBindings.ENGINE_REMOTE_START_STATUS],
+        );
         value =
           this.state[VolvoSensorBindings.GROUP_ENGINE_REMOTE_START][VolvoSensorBindings.ENGINE_REMOTE_START_STATUS] !==
           "off"
@@ -80,7 +90,7 @@ export class Vehicle extends VehicleApi {
         break;
 
       case VolvoSensorBindings.HEATER_STATUS:
-        value = this.state[VolvoSensorBindings.GROUP_HEATER][VolvoSensorBindings.HEATER_STATUS] === "on" ? true : false;
+        value = this.state[VolvoSensorBindings.GROUP_HEATER][VolvoSensorBindings.HEATER_STATUS] !== "off" ? true : false;
         break;
 
       case VolvoSensorBindings.BATTERY_CHARGE_STATUS:
@@ -147,7 +157,7 @@ export class Vehicle extends VehicleApi {
 
   /**
    * Set target value for lock.
-   * @param sensor 
+   * @param sensor
    */
   public async GetSensorTargetValue(sensor: VolvoSensorBindings.LOCK): Promise<CharacteristicValue> {
     if (sensor === VolvoSensorBindings.LOCK) {
@@ -162,7 +172,7 @@ export class Vehicle extends VehicleApi {
     value: CharacteristicValue,
   ): Promise<void | false> {
     let success: boolean;
-
+    this.log.debug(`SET ${sensor} to ${value}`);
     switch (sensor) {
       case VolvoActions.ONLY_LOCK:
         if (value === this.Characteristic.LockTargetState.UNSECURED) {
