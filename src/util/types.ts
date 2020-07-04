@@ -9,24 +9,23 @@ export interface Config {
   updateInterval: number; // seconds
   engineStartDuration: number; // minutes
   batteryLowThreshold: number; // percentage
-  enabledFeatures?: EnabledFeatures;  
+  enabledFeatures?: EnabledFeatures;
 }
 
 export interface EnabledFeatures {
-  "carLocatorSupported": boolean,
-  "honkAndOrBlink": boolean,
-  "honkAndBlink": boolean,
-  "remoteHeaterSupported": boolean,
-  "unlockSupported": boolean,
-  "lockSupported": boolean,
-  "preclimatizationSupported": boolean,
-  "engineStartSupported": boolean,
-  "highVoltageBatterySupported": boolean,
+  carLocatorSupported: boolean;
+  honkAndOrBlink: boolean;
+  honkAndBlink: boolean;
+  remoteHeaterSupported: boolean;
+  unlockSupported: boolean;
+  lockSupported: boolean;
+  preclimatizationSupported: boolean;
+  engineStartSupported: boolean;
+  highVoltageBatterySupported: boolean;
 }
 
-export type FluidLevelStatus = "Normal" | "Low" | "VeryLow"; 
+export type FluidLevelStatus = "Normal" | "Low" | "VeryLow";
 export type TyrePressureStatus = "Normal" | "LowSoft";
-
 
 /* RESPONSE FROM https://vocapi.wirelesscar.net/customerapi/rest/v3.0/customeraccounts */
 export interface User {
@@ -44,10 +43,12 @@ export interface CallState {
   statusTimestamp: Date;
   startTime: Date;
   serviceType: string;
-  failureReason?: any;
   service: string;
   vehicleId: string;
   customerServiceId: string;
+  failureReason?: any;
+  errorDescription?: string;
+  errorLabel?: "ServiceIsNotAvailableOnVehicle" | string;
 }
 
 /* RESPONSE FROM https://vocapi.wirelesscar.net/customerapi/rest/v3.0/vehicles/VEHICLE_VIN/position */
