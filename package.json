@@ -48,7 +48,7 @@
   "scripts": {
     "lint": "eslint --fix src/**/*.ts",
     "watch": "npm run build && npm link && nodemon",
-    "dev": "DEBUG=* /usr/bin/node --inspect-brk /usr/bin/homebridge -P $PWD -D",
+    "dev": "npm run build && DEBUG=* /usr/bin/node --inspect-brk /usr/bin/homebridge -P $PWD -D",
     "build": "tsc",
     "prepublishOnly": "npm run lint && npm run build"
   },
