@@ -71,7 +71,7 @@ export class REST {
       console.log("post req has data:", data);
       postParams["body"] = JSON.stringify(data);
     }
-
-    return (await fetch(this.MakeUrl(url, rel), postParams)).json();
+    const res = await fetch(this.MakeUrl(url, rel), postParams);
+    return res.json();
   }
 }
