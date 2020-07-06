@@ -330,6 +330,8 @@ export class Vehicle extends VehicleApi {
         // this is stateful.
         newState.carLocked = false;
       }
+    } else {
+      this.lockTargetState = newState.carLocked ? 1 : 0;
     }
     this.state = newState;
   }
