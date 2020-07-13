@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import { AccessoryConfig } from "homebridge";
 import { Config, SensorNames } from "./util/types";
 const DEFAULT_INTERVAL = 15;
 const DEFAULT_START_DURATION = 15;
 const DEFAULT_BATTERY_THRESHOLD = 20;
 /**
  * Get vehicle config
- * @param accessoryConfig - Config from homebridge API 
+ * @param accessoryConfig - Config from homebridge API
  */
 export const getConfig = ({
   name,
@@ -18,17 +17,25 @@ export const getConfig = ({
   updateInterval = DEFAULT_INTERVAL,
   engineStartDuration = DEFAULT_START_DURATION,
   batteryLowThreshold = DEFAULT_BATTERY_THRESHOLD,
-}: AccessoryConfig): Config => {
+}: Partial<Config>): Config => {
   // Ensure no illegal values.
-  updateInterval > 5 
-    ? updateInterval
-    : DEFAULT_INTERVAL;
-  1 <= engineStartDuration && engineStartDuration <= 15
-    ? engineStartDuration
-    : DEFAULT_START_DURATION;
-  1 <= batteryLowThreshold && batteryLowThreshold <=99
-    ? batteryLowThreshold
-    : DEFAULT_BATTERY_THRESHOLD;
+  if (typeof name !== "string") {
+    throw new Error("Name is not defined in config.");
+  }
+  if (typeof email !== "string") {
+    throw new Error("Email is not defined in config.");
+  }
+
+  if (typeof password !== "string") {
+    throw new Error("Password is not defined in config.");
+  }
+
+  if (typeof region !== "string") {
+    throw new Error("Region is not defined in config.");
+  }
+  updateInterval = updateInterval > 5 ? updateInterval : DEFAULT_INTERVAL;
+  engineStartDuration = 1 <= engineStartDuration && engineStartDuration <= 15 ? engineStartDuration : DEFAULT_START_DURATION;
+  batteryLowThreshold = 1 <= batteryLowThreshold && batteryLowThreshold <= 99 ? batteryLowThreshold : DEFAULT_BATTERY_THRESHOLD;
   return {
     name,
     email,

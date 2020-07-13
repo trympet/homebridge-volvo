@@ -20,14 +20,14 @@ class VolvoPlatform extends REST {
 
   private vehicle: Vehicle;
   private vehicleCount = 0;
-  private readonly _BASENAME;
+  private readonly _BASENAME: string;
   private AccessoryInformationService;
 
   constructor(private readonly log: Logger, accessoryConfig: AccessoryConfig, private readonly api: API) {
     super(getConfig(accessoryConfig));
     this.log = log;
     this.config = getConfig(accessoryConfig);
-    this.sensorNames = getSensorNames(accessoryConfig.sensorNames);
+    this.sensorNames = getSensorNames( accessoryConfig["sensorNames"] && typeof accessoryConfig["sensorNames"] === "object" ? accessoryConfig.sensorNames : {});
     this._BASENAME = `${this.config.name} `;
 
     log.info("Starting homebridge-volvo");
@@ -41,27 +41,6 @@ class VolvoPlatform extends REST {
       .setCharacteristic(Characteristic.Manufacturer, "Volvo")
       .setCharacteristic(Characteristic.SerialNumber, this.vehicle.attr.registrationNumber)
       .setCharacteristic(Characteristic.Model, vehicleModel);
-  }
-
-  private async GetVehicle(): Promise<Vehicle> {
-    // Get vehicles associated with user
-    const user: User = await this.Get("customeraccounts");
-    this.vehicleCount = user.accountVehicleRelations.length;
-    this.log.debug(`Got account for ${user["username"]}`);
-    // Get data and instantiate vehicle class for vehicle
-    for (let i = 0; i < this.vehicleCount; i++) {
-      const vehicle = user.accountVehicleRelations[i];
-      const rel = await this.Get("", vehicle);
-      if (rel["status"] === "Verified") {
-        const url = rel["vehicle"] + "/";
-        const attr: Promise<VehicleAttributes> = this.Get("attributes", url);
-        if ((await attr).VIN === this.config.VIN) {
-          const state = this.Get("status", url);
-          return new Vehicle(this.config, url, Characteristic, this.log, await attr, await state);
-        }
-      }
-    }
-    throw new Error(`No vehicles found matching the VIN number you provided (${this.config.VIN}).`);
   }
 
   public GetVehicleSync(): Vehicle {
