@@ -14,49 +14,63 @@ export default function (homebridge: HomebridgeAPI) {
   homebridge.registerAccessory("homebridge-volvo", "Volvo", VolvoPlatform);
 }
 
-class VolvoPlatform extends REST {
-  private readonly config: Config;
-  private readonly sensorNames: SensorNames;
-
-  private vehicle: Vehicle;
+class VolvoPlatform {
+  // Definite assignment required since callee-thrown errors are not handled by caller/homebridge.
+  // If constructor runs without errors, all members will be assigned. :)
+  private readonly config!: Config;
+  private readonly sensorNames!: SensorNames;
+  private readonly rest!: REST;
+  private vehicle!: Vehicle;
   private vehicleCount = 0;
-  private readonly _BASENAME: string;
+  private readonly _BASENAME!: string;
   private AccessoryInformationService;
+  private hasFatalError = false; // error flag for homebridge registration
 
   constructor(private readonly log: Logger, accessoryConfig: AccessoryConfig, private readonly api: API) {
-    super(getConfig(accessoryConfig));
-    this.log = log;
-    this.config = getConfig(accessoryConfig);
-    this.sensorNames = getSensorNames( accessoryConfig["sensorNames"] && typeof accessoryConfig["sensorNames"] === "object" ? accessoryConfig.sensorNames : {});
-    this._BASENAME = `${this.config.name} `;
-
     log.info("Starting homebridge-volvo");
-
-    this.vehicle = this.GetVehicleSync();
-    const vehicleModel = `${this.vehicle.attr.modelYear} ${this.vehicle.attr.vehicleType}`;
-    log.info(
-      `Got vehicle ${vehicleModel} with registration number ${this.vehicle.attr.registrationNumber}.`,
-    );
-    this.AccessoryInformationService = new this.api.hap.Service.AccessoryInformation()
-      .setCharacteristic(Characteristic.Manufacturer, "Volvo")
-      .setCharacteristic(Characteristic.SerialNumber, this.vehicle.attr.registrationNumber)
-      .setCharacteristic(Characteristic.Model, vehicleModel);
+    try {
+      this.config = getConfig(accessoryConfig);
+      this.sensorNames = getSensorNames( accessoryConfig["sensorNames"] && typeof accessoryConfig["sensorNames"] === "object" ? accessoryConfig.sensorNames : {});
+      this.rest = new REST(this.config);
+      this._BASENAME = `${this.config.name} `;
+      this.vehicle = this.GetVehicleSync();
+      const vehicleModel = `${this.vehicle.attr.modelYear} ${this.vehicle.attr.vehicleType}`;
+      log.info(
+        `Got vehicle ${vehicleModel} with registration number ${this.vehicle.attr.registrationNumber}.`,
+      );
+      this.AccessoryInformationService = new this.api.hap.Service.AccessoryInformation()
+        .setCharacteristic(Characteristic.Manufacturer, "Volvo")
+        .setCharacteristic(Characteristic.SerialNumber, this.vehicle.attr.registrationNumber)
+        .setCharacteristic(Characteristic.Model, vehicleModel);
+      
+    } catch (error) {
+      this.hasFatalError = true;
+      if (error instanceof Error) {
+        log.error(`Failed to start homebridge-volvo with ${error.stack || error}`);
+      } else {
+        log.error(`Failed to start homebridge-volvo. Error: ${error}`);
+      }
+      log.info("Shutting down homebridge-volvo.");
+      if (this.vehicle) {
+        this.vehicle.Shutdown();
+      }
+    }
   }
 
   public GetVehicleSync(): Vehicle {
     // Get vehicles associated with user
-    const user: User = this.GetSync("customeraccounts");
+    const user: User = this.rest.GetSync("customeraccounts");
     this.vehicleCount = user.accountVehicleRelations.length;
     this.log.debug(`Got account for ${user["username"]}`);
     // Get data and instantiate vehicle class for each vehicle
     for (let i = 0; i < this.vehicleCount; i++) {
       const vehicle = user.accountVehicleRelations[i];
-      const rel = this.GetSync("", vehicle);
+      const rel = this.rest.GetSync("", vehicle);
       if (rel["status"] === "Verified") {
         const url = rel["vehicle"] + "/";
-        const attr: VehicleAttributes = this.GetSync("attributes", url);
+        const attr: VehicleAttributes = this.rest.GetSync("attributes", url);
         if (attr.VIN === this.config.VIN || !this.config.VIN) {
-          const state = this.GetSync("status", url);
+          const state = this.rest.GetSync("status", url);
           return new Vehicle(this.config, url, Characteristic, this.log, attr, state);
         }
       }
@@ -65,6 +79,10 @@ class VolvoPlatform extends REST {
   }
 
   public getServices() {
+    if (this.hasFatalError) {
+      return [];
+    }
+
     const services: IService[] = [this.AccessoryInformationService];
 
     // Feature services

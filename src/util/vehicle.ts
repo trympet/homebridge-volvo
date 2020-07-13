@@ -16,6 +16,7 @@ export class Vehicle extends VehicleApi {
   public readonly features: Record<string, boolean> = {};
   private lockTargetState: CharacteristicValue;
   private bootUnlock = false;
+  private updateTask: NodeJS.Timeout;
 
   constructor(
     private config: Config,
@@ -67,7 +68,7 @@ export class Vehicle extends VehicleApi {
     this.log.info(`\nFeatures enabled:\n\t${getFeatures()}`);
 
     // Update periodically.
-    setInterval(this.Update.bind(this), this.config.updateInterval * 1000);
+    this.updateTask = setInterval(this.Update.bind(this), this.config.updateInterval * 1000);
   }
 
   /**
@@ -393,5 +394,14 @@ export class Vehicle extends VehicleApi {
 
   private async StopPreclimatization() {
     return await this.Call("preclimatization/stop");
+  }
+
+  /**
+   * Clears update task to VOC API.
+   */
+  public Shutdown(): void {
+    if (this.updateTask) {
+      clearInterval(this.updateTask);
+    }
   }
 }
