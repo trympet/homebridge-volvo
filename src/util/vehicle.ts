@@ -53,7 +53,7 @@ export class Vehicle extends VehicleApi {
 
     const getFeatures = (): string => Object.keys(this.features).filter(k => this.features[k]).join("\n\t");
 
-    this.log.info(`Features available:\n\t${getFeatures()}`);
+    this.log.info(`\nFeatures available:\n\t${getFeatures()}`);
 
     if (this.config.enabledFeatures) {
       for (const feature in this.config.enabledFeatures) {
@@ -64,7 +64,7 @@ export class Vehicle extends VehicleApi {
       }
     }
 
-    this.log.info(`Features enabled:\n\t${getFeatures()}`);
+    this.log.info(`\nFeatures enabled:\n\t${getFeatures()}`);
 
     // Update periodically.
     setInterval(this.Update.bind(this), this.config.updateInterval * 1000);
