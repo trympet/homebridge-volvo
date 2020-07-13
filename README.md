@@ -15,7 +15,7 @@ This is a plugin for [Homebridge](https://homebridge.io/), allowing you to contr
   "name": "Volvo",
   "email": "alice@example.com",
   "password": "1234",
-  "region": "",
+  "region": ""
 }
 ```
 ### Full Configuration Example:
@@ -39,7 +39,7 @@ This is a plugin for [Homebridge](https://homebridge.io/), allowing you to contr
     "lockSupported": false,
     "preclimatizationSupported": true,
     "engineStartSupported": true,
-    "highVoltageBatterySupported": true,
+    "highVoltageBatterySupported": true
   }
 }
 ```
