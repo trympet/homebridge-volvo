@@ -1,0 +1,165 @@
+{
+  "pluginAlias": "Volvo",
+  "pluginType": "accessory",
+  "singular": false,
+  "schema": {
+    "name": {
+      "title": "Name",
+      "type": "string",
+      "default": "Volvo",
+
+      "required": true,
+      "description": "Name of the accessory. Siri uses this parameter for identifying your car."
+    },
+    "email": {
+      "title": "Email",
+      "type": "string",
+      "pattern": "^\\S+@\\S+$",
+      "required": true,
+      "description": "Volvo On Call account email."
+    },
+    "password": {
+      "title": "Password",
+      "type": "string",
+      "required": true,
+      "description": "Volvo On Call account password."
+    },
+    "region": {
+      "title": "Region",
+      "type": "string",
+      "required": true,
+      "oneOf": [
+        { "title": "Europe", "enum": ["eu"] },
+        { "title": "North-America", "enum": ["na"] },
+        { "title": "China", "enum": ["cn"] }
+      ],
+      "description": "Volvo On Call region."
+    },
+    "VIN": {
+      "title": "Vehicle Identification Number (VIN)",
+      "type": "string",
+      "placeholder": "YV1AX8850J3766769",
+      "description": "VIN of your Volvo vehicle. Only required if you have multiple vehicles associated with your account."
+    },
+    "updateInterval": {
+      "title": "Update interval to VOC API",
+      "type": "integer",
+      "placeholder": 5,
+      "minimum": 3,
+      "required": false,
+      "description": "Interval (in seconds) between GET status updates to the Volvo On Call API. Setting this number too low will result in DOS."
+    },
+    "engineStartDuration": {
+      "title": "Engine start duration",
+      "type": "integer",
+      "placeholder": 5,
+      "minimum": 1,
+      "maximum": 15,
+      "description": "Duration of engine remote start. Only applicable if feature is supported by your car."
+    },
+    "batteryLowThreshold": {
+      "title": "EV Battery threshold",
+      "type": "integer",
+      "placeholder": 20,
+      "minimum": 1,
+      "maximum": 99,
+      "description": "Threshold (percentage) for battery low status in HomeKit. Only applicable for EV or plugin hybrids."
+    },
+    "enabledFeatures": {
+      "type": "object",
+      "properties": {
+        "carLocatorSupported": {
+          "type": "boolean",
+          "default": true
+        },
+        "honkAndOrBlink": {
+          "type": "boolean",
+          "default": true
+        },
+        "honkAndBlink": {
+          "type": "boolean",
+          "default": true
+        },
+        "remoteHeaterSupported": {
+          "type": "boolean",
+          "default": true
+        },
+        "unlockSupported": {
+          "type": "boolean",
+          "default": true
+        },
+        "lockSupported": {
+          "type": "boolean",
+          "default": true
+        },
+        "preclimatizationSupported": {
+          "type": "boolean",
+          "default": true
+        },
+        "engineStartSupported": {
+          "type": "boolean",
+          "default": true
+        },
+        "highVoltageBatterySupported": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  },
+  "layout": [
+    "name",
+    {
+      "key": "email",
+      "type": "email",
+      "validationMessages": {
+        "pattern": "Not a valid email address."
+      }
+    },
+    {
+      "key": "password",
+      "type": "password"
+    },
+    "region",
+    "VIN",
+    {
+      "type": "section",
+      "title": "Features",
+      "expanded": false,
+      "expandable": true,
+      "key": "enabledFeatures",
+      "description": "Manually enable or disable features. Homebridge-volvo will automatically detect the features available on your car. This is only useful for disableling features for security reasons, such as lock/unlock. Properties:",
+      "required": false,
+      "items": [
+        "enabledFeatures.carLocatorSupported",
+        "enabledFeatures.honkAndOrBlink",
+        "enabledFeatures.honkAndBlink",
+        "enabledFeatures.remoteHeaterSupported",
+        "enabledFeatures.unlockSupported",
+        "enabledFeatures.lockSupported",
+        "enabledFeatures.preclimatizationSupported",
+        "enabledFeatures.engineStartSupported",
+        "enabledFeatures.highVoltageBatterySupported"
+      ]
+    },
+    {
+      "type": "section",
+      "title": "Advanced features",
+      "expanded": false,
+      "expandable": true,
+      "items": [
+        "updateInterval",
+        {
+          "key": "engineStartDuration",
+          "type": "number"
+        },
+        {
+          "key": "batteryLowThreshold",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "form": null,
+  "display": null
+}

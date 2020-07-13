@@ -33,6 +33,13 @@ export const getConfig = ({
   if (typeof region !== "string") {
     throw new Error("Region is not defined in config.");
   }
+
+  if (region === "eu") {
+    // Angular JSON schema form evaluates empty string to false, thus selecting Europe in the dropdown would not work.
+    // Simple cirumvention. 
+    region = "";
+  }
+
   updateInterval = updateInterval > 5 ? updateInterval : DEFAULT_INTERVAL;
   engineStartDuration = 1 <= engineStartDuration && engineStartDuration <= 15 ? engineStartDuration : DEFAULT_START_DURATION;
   batteryLowThreshold = 1 <= batteryLowThreshold && batteryLowThreshold <= 99 ? batteryLowThreshold : DEFAULT_BATTERY_THRESHOLD;
