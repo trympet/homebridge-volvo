@@ -337,20 +337,20 @@ export class Vehicle extends VehicleApi {
     this.state = newState;
   }
 
-  private async Lock() {
-    return await this.Call("lock");
+  private Lock() {
+    return this.Call("lock");
   }
 
-  private async Unlock() {
-    return await this.Call("unlock");
+  private Unlock() {
+    return this.Call("unlock");
   }
 
-  private async StartEngine() {
-    return await this.Call("engine/start", { runtime: this.config.engineStartDuration });
+  private StartEngine() {
+    return this.Call("engine/start", { runtime: this.config.engineStartDuration });
   }
 
-  private async StopEngine() {
-    return await this.Call("engine/stop");
+  private StopEngine() {
+    return this.Call("engine/stop");
   }
 
   private async GetHonkBlinkBody(): Promise<HonkBlinkBody> {
@@ -380,20 +380,20 @@ export class Vehicle extends VehicleApi {
   /**
    * Starts heater
    */
-  private async StartHeater(): Promise<boolean> {
-    return await this.Call("heater/start");
+  private StartHeater(): Promise<boolean> {
+    return this.Call("heater/start");
   }
 
-  private async StopHeater(): Promise<boolean> {
-    return await this.Call("heater/stop");
+  private StopHeater(): Promise<boolean> {
+    return this.Call("heater/stop");
   }
 
-  private async StartPreclimatization() {
-    return await this.Call("preclimatization/start");
+  private StartPreclimatization() {
+    return this.Call("preclimatization/start");
   }
 
-  private async StopPreclimatization() {
-    return await this.Call("preclimatization/stop");
+  private StopPreclimatization() {
+    return this.Call("preclimatization/stop");
   }
 
   /**
