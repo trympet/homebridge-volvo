@@ -49,7 +49,7 @@ export class VehicleApi extends REST {
         break;
 
       case "Failed":
-        this.log.error(`Could not execute ${callState.serviceType} with failure reason "${callState.failureReason}"`)
+        this.log.error(`Could not execute ${callState.serviceType} with failure reason "${callState.failureReason}"`);
         status = false;
         break;
       default:

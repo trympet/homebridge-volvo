@@ -290,7 +290,6 @@ export class Vehicle extends VehicleApi {
 
       case VolvoActions.ENGINE_REMOTE_START:
         if (value) {
-          debugger;
           success = await this.StartEngine();
         } else {
           success = await this.StopEngine();
