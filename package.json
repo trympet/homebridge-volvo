@@ -2,7 +2,7 @@
   "private": false,
   "displayName": "Homebridge Volvo",
   "name": "homebridge-volvo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Volvo plugin for Homebridge",
   "repository": {
     "type": "git",
