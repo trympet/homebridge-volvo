@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { Config, VehicleAttributes, User, VolvoFeatureBindings, VolvoSensorBindings, VolvoActions, SensorNames } from "./util/types";
+import { Config, VehicleAttributes, VehicleState, User, VolvoFeatureBindings, VolvoSensorBindings, VolvoActions, SensorNames } from "./util/types";
 import { Service as IService, Characteristic as ICharacteristic, AccessoryConfig, Logger } from "homebridge";
 import { HomebridgeAPI, API } from "homebridge/lib/api";
 import { getConfig, cbfy, getSensorNames } from "./helpers";
@@ -51,34 +51,51 @@ class VolvoPlatform {
         log.error(`Failed to start homebridge-volvo. Error: ${error}`);
       }
       log.info("Shutting down homebridge-volvo.");
-      if (this.vehicle) {
-        this.vehicle.Shutdown();
-      }
+      this.Shutdown();
     }
   }
 
   public GetVehicleSync(): Vehicle {
-    // Get vehicles associated with user
+    // First get vehicles associated with user
     const user: User = this.rest.GetSync("customeraccounts");
     this.vehicleCount = user.accountVehicleRelations.length;
     this.log.debug(`Got account for ${user["username"]}`);
     // Get data and instantiate vehicle class for each vehicle
+    this.log.debug(`You have ${this.vehicleCount} vehicle(s) associated with your account.`);
+    // Then check every vehicle
     for (let i = 0; i < this.vehicleCount; i++) {
       const vehicle = user.accountVehicleRelations[i];
+      // Get vehicle URN suffix
       const rel = this.rest.GetSync("", vehicle);
       if (rel["status"] === "Verified") {
         const url = rel["vehicle"] + "/";
-        const attr: VehicleAttributes = this.rest.GetSync("attributes", url);
-        if (attr.VIN === this.config.VIN || !this.config.VIN) {
-          const state = this.rest.GetSync("status", url);
-          return new Vehicle(this.config, url, Characteristic, this.log, attr, state);
+        // Get data for vehicle
+        const vehicleAttributes: VehicleAttributes = this.rest.GetSync("attributes", url);
+        // Check if this is the correct vehicle specified by user
+        if (vehicleAttributes.VIN === this.config.VIN || !this.config.VIN) {
+          // Remove possibly sensitive or identifying information for debugging and submitting issues
+          const attributesRedacted = this.Redact(vehicleAttributes, "vin", "VIN", "registrationNumber");
+          this.log.debug(`Vehicle attributes:\n${JSON.stringify(attributesRedacted, null, 2)}`);
+          const vehicleState: VehicleState = this.rest.GetSync("status", url);
+          this.log.debug(`Vehicle state:\n${JSON.stringify(this.Redact(vehicleState, "theftAlarm"), null, 2)}`);
+          return new Vehicle(this.config, url, Characteristic, this.log, vehicleAttributes, vehicleState);
         }
       }
     }
     throw new Error(`No vehicles found matching the VIN number you provided (${this.config.VIN}).`);
   }
 
+  private Redact(obj, ...props) {
+    const res = Object.assign({}, obj);
+    for (const prop of props) {
+      delete res[prop];
+      res[prop] = "***REDACTED***";
+    }
+    return res;
+  }
+
   public getServices() {
+    // Check if plugin has any startup errors
     if (this.hasFatalError) {
       return [];
     }
@@ -275,9 +292,19 @@ class VolvoPlatform {
     // services.push(rearRightTyreService);
 
     if (services.length === 1) {
-      this.log.error("Could not find any capabilities for your car. Something has gone wrong. Sorry man :/");
+      // This is a fatal error, so plugin should not return any services
+      this.log.error("Could not find any capabilities for your car. Something has gone wrong. Shutting down.");
+      this.Shutdown();
+      return [];
+    } else {
+      return services;
     }
 
-    return services;
+  }
+
+  private Shutdown(): void {
+    if (this.vehicle) {
+      this.vehicle.Shutdown();
+    }
   }
 }
