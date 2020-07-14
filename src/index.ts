@@ -126,7 +126,7 @@ class VolvoPlatform {
       const heaterService = new Service.Switch(this._BASENAME + this.sensorNames.heater, VolvoFeatureBindings.REMOTE_HEATER);
       heaterService
         .getCharacteristic(Characteristic.On)
-        .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HEATER_STATUS)))
+        .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.GROUP_HEATER)))
         .on("set", cbfy(this.vehicle.SetSensorValue.bind(this.vehicle, VolvoActions.HEATER, heaterService)));
       services.push(heaterService);
     }
@@ -135,7 +135,7 @@ class VolvoPlatform {
       const heaterService = new Service.Switch(this._BASENAME + this.sensorNames.preclimatization, VolvoFeatureBindings.PRECLIMATIZATION);
       heaterService
         .getCharacteristic(Characteristic.On)
-        .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.HEATER_STATUS)))
+        .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.GROUP_HEATER)))
         .on("set", cbfy(this.vehicle.SetSensorValue.bind(this.vehicle, VolvoActions.PRECLIMATIZATION, heaterService)));
       services.push(heaterService);
     }
@@ -144,7 +144,7 @@ class VolvoPlatform {
       const engineService = new Service.Switch(this._BASENAME + this.sensorNames.engineStart, VolvoFeatureBindings.ENGINE_REMOTE_START);
       engineService
         .getCharacteristic(Characteristic.On)
-        .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.ENGINE_REMOTE_START_STATUS)))
+        .on("get", cbfy(this.vehicle.GetSensorValue.bind(this.vehicle, VolvoSensorBindings.GROUP_ENGINE_REMOTE_START)))
         .on(
           "set",
           cbfy(this.vehicle.SetSensorValue.bind(this.vehicle, VolvoActions.ENGINE_REMOTE_START, engineService)),

@@ -1,12 +1,11 @@
 import { REST } from "./rest";
 import { Config, CallState, VehicleState, PositionResponse } from "./types";
 import { wait } from "../helpers";
+import { Logger } from "homebridge";
 
 export class VehicleApi extends REST {
-  private vehicleUrl: string;
-  constructor(config: Config, url: string) {
+  constructor(config: Config, private readonly vehicleUrl: string, public readonly log: Logger) {
     super(config);
-    this.vehicleUrl = url;
   }
 
   private VALID_STATUS = ["Queued", "Started"];
@@ -16,40 +15,58 @@ export class VehicleApi extends REST {
    */
   public async Call(method: string, data?: Record<string, unknown>) {
     const initialCall: CallState = await this.Post(method, this.vehicleUrl, data);
+    // Sometimes the VOC API doesn't return valid JSON. Therefore we have this edgecase.
     if (!initialCall["service"] || !initialCall["status"] || !this.VALID_STATUS.includes(initialCall["status"] || "")) {
-      console.warn(`Failed to execute ${method}: ${initialCall["errorDescription"]}`);
-      console.log(JSON.stringify(initialCall));
+      this.log.error(`Failed to execute ${method}: ${initialCall["errorDescription"]}`);
+      this.log.error(JSON.stringify(initialCall, null, 2));
       return false;
     }
     return await this.CheckCallState(initialCall);
   }
 
-  private async CheckCallState(callState: CallState): Promise<boolean> {
-    console.log(callState.status);
+  private async CheckCallState(callState: CallState, initial?: boolean): Promise<boolean> {
     if (!("status" in callState)) {
-      console.warn("Message not delivered");
+      this.log.warn("Message not delivered");
       return false;
     }
+    let status: boolean;
     switch (callState.status) {
       case "Successful":
-        return true;
+        status = true;
         break;
 
       case "MessageDelivered":
-        return true;
+        status = true;
         break;
 
       case "Queued":
         await wait(10);
+        status = false;
         break;
+
       case "Started":
-        return true;
+        status = true;
+        break;
+
+      case "Failed":
+        this.log.error(`Could not execute ${callState.serviceType} with failure reason "${callState.failureReason}"`)
+        status = false;
         break;
       default:
-        return false;
+        status = false;
         break;
     }
-    return await this.GetCallState(callState.service);
+    if (status) {
+      if (initial) {
+        // Initial call was successful. Now check status
+        return await this.GetCallState(callState.service);
+      } else {
+        // Follow-up callstate is successful.
+        return true;
+      }
+    } else {
+      return false;
+    }
   }
 
   private async GetCallState(serviceUrl: string) {

@@ -22,11 +22,11 @@ export class Vehicle extends VehicleApi {
     private config: Config,
     public url: string,
     private readonly Characteristic: typeof ICharacteristic,
-    private readonly log: Logger,
+    log: Logger,
     public readonly attr: VehicleAttributes,
     state: VehicleState,
   ) {
-    super(config, url);
+    super(config, url, log);
 
     // Add default values to honk and blink state
     state["honkBlinkActive"] = false;
@@ -79,10 +79,7 @@ export class Vehicle extends VehicleApi {
     this.log.debug(`GET ${sensor}`);
     let value: CharacteristicValue;
     switch (sensor) {
-      case VolvoSensorBindings.ENGINE_REMOTE_START_STATUS:
-        this.log.debug(
-          this.state[VolvoSensorBindings.GROUP_ENGINE_REMOTE_START][VolvoSensorBindings.ENGINE_REMOTE_START_STATUS],
-        );
+      case VolvoSensorBindings.GROUP_ENGINE_REMOTE_START:
         value =
           this.state[VolvoSensorBindings.GROUP_ENGINE_REMOTE_START][VolvoSensorBindings.ENGINE_REMOTE_START_STATUS] !==
           "off"
@@ -90,7 +87,7 @@ export class Vehicle extends VehicleApi {
             : false;
         break;
 
-      case VolvoSensorBindings.HEATER_STATUS:
+      case VolvoSensorBindings.GROUP_HEATER:
         value = this.state[VolvoSensorBindings.GROUP_HEATER][VolvoSensorBindings.HEATER_STATUS] !== "off" ? true : false;
         break;
 
@@ -293,6 +290,7 @@ export class Vehicle extends VehicleApi {
 
       case VolvoActions.ENGINE_REMOTE_START:
         if (value) {
+          debugger;
           success = await this.StartEngine();
         } else {
           success = await this.StopEngine();
