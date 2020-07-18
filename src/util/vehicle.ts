@@ -17,6 +17,7 @@ export class Vehicle extends VehicleApi {
   private lockTargetState: CharacteristicValue;
   private bootUnlock = false;
   private updateTask: NodeJS.Timeout;
+  private isUpdating = false;
 
   constructor(
     private config: Config,
@@ -302,7 +303,6 @@ export class Vehicle extends VehicleApi {
 
       default:
         return false;
-        break;
     }
 
     setTimeout(() => this.Update(), 5 * 1000); // Update 5 seconds after value change
@@ -312,26 +312,35 @@ export class Vehicle extends VehicleApi {
    * Refreshes state from VOC API. Note that the state may be delayed by quite a bit.
    */
   private async Update(): Promise<void> {
-    this.log.debug("Updating...");
-    await this.RequestUpdate();
-    await wait(5);
-    const newState = await this.GetUpdate();
-    if (this.bootUnlock) {
-      // User has unlocked boot
-      if (!newState.carLocked) {
-        // Car has been fully unlocked
-        this.bootUnlock = false;
-      } else {
-        // Car is still partially locked, but indicate to the user that the vehicle is in fact unlocked.
-        // Manually set car unlocked, since boot is open. This isn't shown by the API,
-        // only by querying for services by /services?active=true. No point in implementing this, since
-        // this is stateful.
-        newState.carLocked = false;
-      }
-    } else {
-      this.lockTargetState = newState.carLocked ? 1 : 0;
+    if (this.isUpdating) {
+      return;
     }
-    this.state = newState;
+    this.isUpdating = true;
+    this.log.debug("Updating...");
+    try {
+      await this.RequestUpdate();
+      await wait(5);
+      const newState = await this.GetUpdate();
+      if (this.bootUnlock) {
+        // User has unlocked boot
+        if (!newState.carLocked) {
+          // Car has been fully unlocked
+          this.bootUnlock = false;
+        } else {
+          // Car is still partially locked, but indicate to the user that the vehicle is in fact unlocked.
+          // Manually set car unlocked, since boot is open. This isn't shown by the API,
+          // only by querying for services by /services?active=true. No point in implementing this, since
+          // this is stateful.
+          newState.carLocked = false;
+        }
+      } else {
+        this.lockTargetState = newState.carLocked ? 1 : 0;
+      }
+      this.state = newState;
+    } catch (error) {
+      this.log.error("Failed to update vehicle status from Volvo On Call API.");
+    }
+    this.isUpdating = false;
   }
 
   private Lock() {

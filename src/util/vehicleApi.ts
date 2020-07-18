@@ -14,7 +14,13 @@ export class VehicleApi extends REST {
    * Make a call to the VOC API.
    */
   public async Call(method: string, data?: Record<string, unknown>) {
-    const initialCall: CallState = await this.Post(method, this.vehicleUrl, data);
+    let initialCall: CallState;
+    try {
+      initialCall = await this.Post(method, this.vehicleUrl, data);
+    } catch (error) {
+      this.log.error(`Failed to post ${method} to Volvo On Call API.`);
+      return false; 
+    }
     // Sometimes the VOC API doesn't return valid JSON. Therefore we have this edgecase.
     if (!initialCall["service"] || !initialCall["status"] || !this.VALID_STATUS.includes(initialCall["status"] || "")) {
       this.log.error(`Failed to execute ${method}: ${initialCall["errorDescription"]}`);
