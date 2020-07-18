@@ -58,12 +58,12 @@
       "description": "Duration of engine remote start. Only applicable if feature is supported by your car."
     },
     "batteryLowThreshold": {
-      "title": "EV Battery threshold",
+      "title": "EV Battery/fuel threshold",
       "type": "integer",
       "placeholder": 20,
       "minimum": 1,
       "maximum": 99,
-      "description": "Threshold (percentage) for battery low status in HomeKit. Only applicable for EV or plugin hybrids."
+      "description": "Threshold (percentage) for battery low status in HomeKit. If your vehicle is not an EV, this will reflect the fuel level for your car."
     },
     "enabledFeatures": {
       "type": "object",

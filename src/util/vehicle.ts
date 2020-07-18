@@ -112,7 +112,7 @@ export class Vehicle extends VehicleApi {
 
       case VolvoSensorBindings.FUEL_PERCENT_LOW:
         value =
-          this.state.fuelAmountLevel < 20
+          this.state.fuelAmountLevel < this.config.batteryLowThreshold
             ? this.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW
             : this.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
         break;
