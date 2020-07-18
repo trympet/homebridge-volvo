@@ -6,7 +6,7 @@ This is a plugin for [Homebridge](https://homebridge.io/), allowing you to contr
 ### Plugin installation
 1. Install [Homebridge](https://homebridge.io/) using: `npm install -g homebridge`
 2. Install homebridge-volvo using: `npm install -g homebridge-volvo`
-3. Configure homebridge-volvo by editing your `~/.homebridge/config.json` file. See example below:
+3. Configure homebridge-volvo by editing your `~/.homebridge/config.json` file, or use [config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x). See example below:
 ## Configuration
 ### Basic Configuration Example:
 ``` json
@@ -66,29 +66,3 @@ This is a plugin for [Homebridge](https://homebridge.io/), allowing you to contr
   - `preclimatizationSupported`: Optional boolean (default: `true`)
   - `engineStartSupported`: Optional boolean (default: `true`)
   - `highVoltageBatterySupported`: Optional boolean (default: `true`)
-
-## DEV Updates
-### Update 2020-07-13
-I have everything working in my environment, and worked out some bugs. Still much to be done in terms of bug testing, as well as adhering to the error handling requirements secified [here](https://github.com/homebridge/homebridge/wiki/verified-Plugins#requirements).
-
-### Update 202-07-02
-Homebridge is now working, allthough I have not tested much of the functionality yet. This is still very much in early development.   
-
-The currently implemented services via Homebridge are:
-- Engine remote start
-- Heater
-- Preclimatization
-- Lock/unlock
-- Honk and blink
-- Blink
-- Engine status
-- Battery level
-- Charge status
-
-### Update 2020-06-30
-I am still in early development. At this point, the only thing implemented is an interface to the VOC API, along with basic functionality, such as turning on or off the parking heater, engine control, doors, etc.   
-I only have access to my own car for testing. Therefore, I am only able to test the functionality available on my car, a 2020 XC60 T8. Feel free to open an issue containing example responses from the API for your car.   
-   
-Useful endpoints include:
-- `https://vocapi.wirelesscar.net/customerapi/rest/v3.0/vehicles/VEHICLE_VIN/status`
-- `https://vocapi.wirelesscar.net/customerapi/rest/v3.0/vehicles/VEHICLE_VIN/attributes`
