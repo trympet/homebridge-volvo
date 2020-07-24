@@ -12,21 +12,24 @@ export class REST {
   private password: string;
 
   private _AUTH = "";
-  private _SERVICE_URL = "";
 
   // required headers for response from VOC API
   private HEADERS: Headers;
   private SYNC_HEADERS;
 
-  private static SERVICE_URL = (region: Config["region"]) =>
-    `https://vocapi${region}.wirelesscar.net/customerapi/rest/v3.0/`;
+  private get serviceUrl(): string {
+    let _region = "";
+    if (this.region && this.region !== "eu") {
+      _region = `-${this.region}`;
+    }
+    return `https://vocapi${_region}.wirelesscar.net/customerapi/rest/v3.0/`;
+  }
 
   constructor(config: Config) {
     // set service URL based on region
     this.username = config.email;
     this.password = config.password;
-    this.region = config.region + ".";
-    this._SERVICE_URL = `https://vocapi.${this.region !== "." || ""}wirelesscar.net/customerapi/rest/v3.0/`;
+    this.region = config.region;
     this._AUTH = BasicAuth(this.username, this.password);
     // add auth header to API calls
     const headerObj = {
@@ -43,7 +46,7 @@ export class REST {
     this.SYNC_HEADERS = headerObj;
   }
 
-  private MakeUrl = (url: string, rel?: string) => (rel || this._SERVICE_URL) + url;
+  private MakeUrl = (url: string, rel?: string) => (rel || this.serviceUrl) + url;
 
   public async Get(url: string, rel?: string) {
     return (
