@@ -1,4 +1,13 @@
+<span align="center">
+
 # homebridge-volvo
+
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+[![homebridge-webos-tv](https://badgen.net/npm/v/homebridge-volvo?icon=npm)](https://www.npmjs.com/package/homebridge-volvo)
+[![apache-2.0-license](https://badgen.net/npm/license/homebridge)](https://github.com/trympet/homebridge-volvo/blob/master/LICENSE)
+
+</span>
+
 ## About
 This is a plugin for [Homebridge](https://homebridge.io/), allowing you to control your Volvo car, and aims to replicate most of the functionality from the official Volvo On Call app.   
 
