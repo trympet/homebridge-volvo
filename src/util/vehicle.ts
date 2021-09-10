@@ -59,7 +59,7 @@ export class Vehicle extends VehicleApi {
 
     if (this.config.enabledFeatures) {
       for (const feature in this.config.enabledFeatures) {
-        if (Object.prototype.hasOwnProperty.call(this.config, feature) && !this.config.enabledFeatures[feature]) {
+        if (Object.prototype.hasOwnProperty.call(this.config.enabledFeatures, feature) && !this.config.enabledFeatures[feature]) {
           // User has disabled the feature, so we disable it as well.
           this.features[feature] = false;
         }

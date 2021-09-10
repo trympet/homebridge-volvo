@@ -17,6 +17,7 @@ export const getConfig = ({
   updateInterval = DEFAULT_INTERVAL,
   engineStartDuration = DEFAULT_START_DURATION,
   batteryLowThreshold = DEFAULT_BATTERY_THRESHOLD,
+  enabledFeatures,
 }: Partial<Config>): Config => {
   // Ensure no illegal values.
   if (typeof name !== "string") {
@@ -36,7 +37,7 @@ export const getConfig = ({
 
   if (region === "eu") {
     // Angular JSON schema form evaluates empty string to false, thus selecting Europe in the dropdown would not work.
-    // Simple cirumvention. 
+    // Simple cirumvention.
     region = "";
   }
 
@@ -52,6 +53,7 @@ export const getConfig = ({
     updateInterval,
     engineStartDuration,
     batteryLowThreshold,
+    enabledFeatures,
   };
 };
 
