@@ -94,7 +94,7 @@
         },
         "preclimatizationSupported": {
           "type": "boolean",
-          "default": true
+          "default": false
         },
         "engineStartSupported": {
           "type": "boolean",
