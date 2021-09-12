@@ -117,31 +117,31 @@ export class Vehicle extends VehicleApi {
             : this.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
         break;
 
-      case VolvoSensorBindings.DOOR_TAILGATE ||
-        VolvoSensorBindings.DOOR_FRONT_LEFT ||
-        VolvoSensorBindings.DOOR_FRONT_RIGHT ||
-        VolvoSensorBindings.DOOR_REAR_LEFT ||
-        VolvoSensorBindings.DOOR_REAR_RIGHT:
+      case VolvoSensorBindings.DOOR_TAILGATE:
+      case VolvoSensorBindings.DOOR_FRONT_LEFT:
+      case VolvoSensorBindings.DOOR_FRONT_RIGHT:
+      case VolvoSensorBindings.DOOR_REAR_LEFT:
+      case VolvoSensorBindings.DOOR_REAR_RIGHT:
         value = 
           this.state[VolvoSensorBindings.GROUP_DOORS][sensor]
             ? this.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
             : this.Characteristic.ContactSensorState.CONTACT_DETECTED;
         break;
 
-      case VolvoSensorBindings.WINDOW_FRONT_LEFT ||
-        VolvoSensorBindings.WINDOW_FRONT_RIGHT ||
-        VolvoSensorBindings.WINDOW_REAR_LEFT ||
-        VolvoSensorBindings.WINDOW_REAR_RIGHT:
+      case VolvoSensorBindings.WINDOW_FRONT_LEFT:
+      case VolvoSensorBindings.WINDOW_FRONT_RIGHT:
+      case VolvoSensorBindings.WINDOW_REAR_LEFT:
+      case VolvoSensorBindings.WINDOW_REAR_RIGHT:
         value = 
           this.state[VolvoSensorBindings.GROUP_WINDOWS][sensor]
             ? this.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
             : this.Characteristic.ContactSensorState.CONTACT_DETECTED;
         break;
 
-      case VolvoSensorBindings.TYRE_FRONT_LEFT ||
-        VolvoSensorBindings.TYRE_FRONT_RIGHT ||
-        VolvoSensorBindings.TYRE_REAR_LEFT ||
-        VolvoSensorBindings.TYRE_REAR_RIGHT:
+      case VolvoSensorBindings.TYRE_FRONT_LEFT:
+      case VolvoSensorBindings.TYRE_FRONT_RIGHT:
+      case VolvoSensorBindings.TYRE_REAR_LEFT:
+      case VolvoSensorBindings.TYRE_REAR_RIGHT:
         value =
           this.state[VolvoSensorBindings.GROUP_TYRE][sensor] === "Normal"
             ? this.Characteristic.AirQuality.GOOD
