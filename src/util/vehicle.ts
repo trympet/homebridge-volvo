@@ -89,7 +89,8 @@ export class Vehicle extends VehicleApi {
         break;
 
       case VolvoSensorBindings.GROUP_HEATER:
-        value = this.state[VolvoSensorBindings.GROUP_HEATER][VolvoSensorBindings.HEATER_STATUS] !== "off" ? true : false;
+        value = this.state[VolvoSensorBindings.GROUP_HEATER] &&
+          this.state[VolvoSensorBindings.GROUP_HEATER][VolvoSensorBindings.HEATER_STATUS] !== "off" ? true : false;
         break;
 
       case VolvoSensorBindings.BATTERY_CHARGE_STATUS:
