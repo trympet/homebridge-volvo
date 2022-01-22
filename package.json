@@ -30,7 +30,7 @@
   ],
   "dependencies": {
     "btoa": "^1.2.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^3.1.1",
     "sync-request": "^6.1.0",
     "typescript": "^3.9.6"
   },
